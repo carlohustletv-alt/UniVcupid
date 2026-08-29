@@ -26,6 +26,7 @@ for all using (public.is_app_admin()) with check (public.is_app_admin());
 create index if not exists campus_announcements_created_idx on public.campus_announcements (created_at desc);
 
 -- 2. Enhanced Admin Overview with Activity Distributions
+drop function if exists public.admin_overview();
 create or replace function public.admin_overview()
 returns table (
   profiles bigint,

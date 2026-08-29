@@ -20,6 +20,14 @@ create table if not exists public.moderation_actions (
 alter table public.app_admins enable row level security;
 alter table public.moderation_actions enable row level security;
 
+create or replace function public.is_app_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.app_admins aa
+    where aa.user_id = auth.uid() and aa.active = true
+  );
+$$;
+
 drop policy if exists "admins read own admin status" on public.app_admins;
 drop policy if exists "admins read moderation actions" on public.moderation_actions;
 

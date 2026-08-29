@@ -208,6 +208,6 @@ language sql stable security definer set search_path = public as $$
   left join public.profiles p on p.id = other.user_id
   where viewer_id = auth.uid()
   group by c.id
-  order by last_message_at desc nulls last, c.created_at desc
+  order by (select m.created_at from public.messages m where m.conversation_id = c.id and not m.is_deleted order by m.created_at desc limit 1) desc nulls last, c.created_at desc
   limit 50;
 $$;
