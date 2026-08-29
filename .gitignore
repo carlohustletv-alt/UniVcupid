@@ -3,7 +3,12 @@
 build/
 app/build/
 local.properties
+.env
+.env.*
+!.env.example
 *.keystore
 *.jks
+*.pem
+*.key
 supabase/.temp/
 tools/supabase/*.exe
