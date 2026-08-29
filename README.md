@@ -32,7 +32,7 @@
 
 | Experience | What it does |
 | --- | --- |
-| **Vibes** | Share activity updates, photos, reactions, and join intent. |
+| **Vibes** | Share activity updates, photos, reactions, and consent-based plan requests. |
 | **Cupid** | Discover compatible students and create mutual matches. |
 | **VibesMates** | Send, accept, and manage private social connections. |
 | **Circles** | Join campus communities and post in their lounge feeds. |

@@ -3,8 +3,9 @@ param(
   [string]$AccessToken = $env:SUPABASE_ACCESS_TOKEN
 )
 
-$cli = Join-Path $PSScriptRoot "..\tools\supabase\supabase.exe"
-if (-not (Test-Path -LiteralPath $cli)) { throw "Supabase CLI not found at tools\supabase\supabase.exe" }
+$localCli = Join-Path $PSScriptRoot "..\tools\supabase\supabase.exe"
+$cli = if (Test-Path -LiteralPath $localCli) { $localCli } else { (Get-Command supabase -ErrorAction SilentlyContinue).Source }
+if (-not $cli) { throw "Install the Supabase CLI or place it at tools\supabase\supabase.exe" }
 
 if ($DbUrl) {
   & $cli db push --db-url $DbUrl

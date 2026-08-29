@@ -42,6 +42,14 @@ data class VibeRequest(
     val requester: PublicProfile,
 )
 
+data class VibeJoinRequest(
+    val id: String,
+    val vibeId: String,
+    val activity: String,
+    val caption: String,
+    val requester: PublicProfile,
+)
+
 data class CircleSummary(
     val id: String,
     val name: String,

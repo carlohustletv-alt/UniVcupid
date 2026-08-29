@@ -417,6 +417,13 @@ private fun VibeScreen(repository: UnivCupidRepository, openPhoto: (VibePost) ->
                 openPhoto = openPhoto,
                 openProfile = openProfile,
                 onReport = { reportingPost = post },
+                onJoinPlan = {
+                    scope.launch {
+                        runCatching { repository.requestToJoinVibe(post.id) }
+                            .onSuccess { notify("Join request sent to ${post.author.displayName}") }
+                            .onFailure { notify(it.message ?: "Could not request to join") }
+                    }
+                },
                 react = { reaction ->
                     scope.launch {
                         runCatching { repository.reactToVibe(post.id, reaction) }
@@ -687,6 +694,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var myPosts by remember { mutableStateOf<List<VibePost>>(emptyList()) }
     var requests by remember { mutableStateOf<List<VibeRequest>>(emptyList()) }
+    var planRequests by remember { mutableStateOf<List<VibeJoinRequest>>(emptyList()) }
     var mates by remember { mutableStateOf<List<PublicProfile>>(emptyList()) }
     var loadingPosts by remember { mutableStateOf(true) }
     var postsError by remember { mutableStateOf<String?>(null) }
@@ -702,6 +710,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     fun loadSocial() {
         scope.launch {
             runCatching { repository.loadIncomingVibeRequests() }.onSuccess { requests = it }
+            runCatching { repository.loadIncomingVibeJoinRequests() }.onSuccess { planRequests = it }
             runCatching { repository.loadVibesmates() }.onSuccess { mates = it }
         }
     }
@@ -733,6 +742,28 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
         item { Text("Vibe Requests", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         if (requests.isEmpty()) item { EmptyCard("No pending requests", "When someone sends a vibe, you can accept them as a VibesMate here.") }
         else items(requests, key = { it.id }) { request -> VibeRequestCard(request, openProfile = { openProfile(request.requester.id) }, accept = { scope.launch { runCatching { repository.acceptVibeRequest(request.id) }.onSuccess { notify("VibesMate added"); loadSocial() }.onFailure { notify(it.message ?: "Could not accept") } } }, decline = { scope.launch { runCatching { repository.declineVibeRequest(request.id) }.onSuccess { notify("Request declined"); loadSocial() }.onFailure { notify(it.message ?: "Could not decline") } } }) }
+        item { Text("Plan requests", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+        if (planRequests.isEmpty()) item { EmptyCard("No plan requests", "When a student asks to join an open Vibe, you can approve it here.") }
+        else items(planRequests, key = { it.id }) { request ->
+            PlanJoinRequestCard(
+                request = request,
+                openProfile = { openProfile(request.requester.id) },
+                accept = {
+                    scope.launch {
+                        runCatching { repository.acceptVibeJoinRequest(request.id) }
+                            .onSuccess { notify("Plan accepted. A chat is ready."); loadSocial() }
+                            .onFailure { notify(it.message ?: "Could not accept") }
+                    }
+                },
+                decline = {
+                    scope.launch {
+                        runCatching { repository.declineVibeJoinRequest(request.id) }
+                            .onSuccess { notify("Plan request declined"); loadSocial() }
+                            .onFailure { notify(it.message ?: "Could not decline") }
+                    }
+                },
+            )
+        }
         item { Text("VibesMates", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         if (mates.isEmpty()) item { EmptyCard("No VibesMates yet", "Send or accept vibe requests to unlock private VibesMate posts.") }
         else items(mates, key = { it.id }) { mate -> MateCard(mate) { openProfile(mate.id) } }
@@ -794,7 +825,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
 
 @Composable private fun Header(title: String, subtitle: String) { Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { LogoMark(); Column(Modifier.padding(start = 10.dp)) { Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Ink); Text(subtitle, color = Muted, fontSize = 12.sp) } } }
 
-@Composable private fun VibePostCard(post: VibePost, openPhoto: (VibePost) -> Unit, openProfile: (String) -> Unit, onReport: () -> Unit, react: (String) -> Unit) {
+@Composable private fun VibePostCard(post: VibePost, openPhoto: (VibePost) -> Unit, openProfile: (String) -> Unit, onReport: () -> Unit, onJoinPlan: () -> Unit, react: (String) -> Unit) {
     Surface(shape = RoundedCornerShape(24.dp), color = Ink, shadowElevation = 6.dp, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.background(Brush.linearGradient(listOf(Color(0xFF8667B8), Ink))).padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -807,6 +838,14 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
             Text("${post.author.displayName} · ${post.author.age}", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { openProfile(post.author.id) }.padding(top = 8.dp))
             Text("🎓 " + post.author.university + " · " + post.author.course, color = Color(0xFFE6E0F1), fontSize = 12.sp)
             if (post.caption.isNotBlank()) Text(post.caption, color = Color.White, modifier = Modifier.padding(top = 8.dp))
+            if (post.openToCompany) {
+                OutlinedButton(
+                    onClick = onJoinPlan,
+                    modifier = Modifier.padding(top = 10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = .65f)),
+                ) { Text("🤝 Open to company · Request to join", fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+            }
             Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 listOf("❤️", "🔥", "🙌").forEach { Button({ react(it) }, colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = .22f)), shape = RoundedCornerShape(14.dp)) { Text(it, fontSize = 14.sp) } }
                 Spacer(Modifier.weight(1f))
@@ -1001,6 +1040,8 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
 }
 
 @Composable private fun VibeRequestCard(request: VibeRequest, openProfile: () -> Unit, accept: () -> Unit, decline: () -> Unit) { Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) { Column(Modifier.padding(14.dp)) { Text(request.requester.displayName, fontWeight = FontWeight.Bold); Text("${request.requester.university} · ${request.requester.course}", color = Muted, fontSize = 12.sp); Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) { Button(accept, colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Accept") }; OutlinedButton(decline) { Text("Decline") } } } } }
+
+@Composable private fun PlanJoinRequestCard(request: VibeJoinRequest, openProfile: () -> Unit, accept: () -> Unit, decline: () -> Unit) { Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { Text("${request.requester.displayName} wants to join", fontWeight = FontWeight.Bold); Text("${request.activity} · ${request.caption.ifBlank { "Open Vibe" }}", color = Muted, fontSize = 12.sp, maxLines = 2); Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) { Button(accept, colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Accept + Chat") }; OutlinedButton(decline) { Text("Decline") } } } } }
 @Composable private fun MateCard(mate: PublicProfile, openProfile: () -> Unit) { Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) { Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) { Avatar(mate.displayName.firstOrNull()?.toString() ?: "V"); Column(Modifier.padding(start = 10.dp)) { Text(mate.displayName, fontWeight = FontWeight.Bold); Text("${mate.university} · ${mate.course}", color = Muted, fontSize = 12.sp) } } } }
 
 @Composable private fun FullscreenPhoto(post: VibePost, onDismiss: () -> Unit) { Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) { Box(Modifier.fillMaxSize().background(Color.Black)) { VibePhoto(post.mediaUrl, "Full-size Vibe photo", Modifier.fillMaxSize().clickable(onClick = onDismiss)); Surface(color = Color.Black.copy(alpha = 0.62f), modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) { Column(Modifier.padding(18.dp)) { Text(post.author.displayName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp); if (post.caption.isNotBlank()) Text(post.caption, color = Color.White, modifier = Modifier.padding(top = 6.dp)); TextButton(onDismiss) { Text("Close") } } } } } }
@@ -1031,4 +1072,3 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
 @Composable private fun SettingRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) { Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) { Text(label, Modifier.weight(1f), fontWeight = FontWeight.SemiBold); Switch(checked, onChange) } }
 @Composable private fun Avatar(letter: String) { Surface(shape = CircleShape, color = Coral, modifier = Modifier.size(42.dp).border(2.dp, Violet, CircleShape)) { Box(contentAlignment = Alignment.Center) { Text(letter, color = Color.White, fontWeight = FontWeight.Bold) } } }
 @Composable private fun LogoMark(size: Int = 42) { Image(painter = painterResource(R.drawable.logo), contentDescription = "UnivCupid logo", contentScale = ContentScale.Crop, modifier = Modifier.size(size.dp).clip(RoundedCornerShape(14.dp))) }
-

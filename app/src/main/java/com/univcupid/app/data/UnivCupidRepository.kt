@@ -17,12 +17,16 @@ interface UnivCupidRepository {
     suspend fun loadMessages(conversationId: String): List<ChatMessage>
     suspend fun loadProfile(profileUserId: String): ProfileDetail
     suspend fun loadIncomingVibeRequests(): List<VibeRequest>
+    suspend fun loadIncomingVibeJoinRequests(): List<VibeJoinRequest>
     suspend fun loadVibesmates(): List<PublicProfile>
     suspend fun publishQuickShare(draft: QuickShareDraft): VibePost
     suspend fun reactToVibe(vibeId: String, reaction: String)
     suspend fun sendVibeRequest(targetUserId: String)
+    suspend fun requestToJoinVibe(vibeId: String)
     suspend fun acceptVibeRequest(requestId: String)
     suspend fun declineVibeRequest(requestId: String)
+    suspend fun acceptVibeJoinRequest(requestId: String)
+    suspend fun declineVibeJoinRequest(requestId: String)
     suspend fun setCircleMembership(circleId: String, leave: Boolean)
     suspend fun likeCupidProfile(likedUserId: String): Boolean
     suspend fun sendMessage(conversationId: String, body: String)
@@ -58,7 +62,7 @@ class SupabaseUnivCupidRepository(
     }
 
     override suspend fun loadMyVibes(): List<VibePost> {
-        val rows = rest.get("vibes?select=id,activity,caption,media_url,open_to_company,visibility,created_at&user_id=eq.$userId&order=created_at.desc&limit=16")
+        val rows = rest.get("vibes?select=id,activity,caption,media_url,open_to_company,visibility,created_at&user_id=eq.$userId&is_deleted=eq.false&order=created_at.desc&limit=16")
         return List(rows.length()) { index ->
             val item = rows.getJSONObject(index)
             VibePost(
@@ -136,7 +140,7 @@ class SupabaseUnivCupidRepository(
     }
 
     override suspend fun loadMessages(conversationId: String): List<ChatMessage> {
-        val rows = rest.get("messages?select=id,sender_id,body,created_at&conversation_id=eq.$conversationId&order=created_at.desc&limit=50")
+        val rows = rest.get("messages?select=id,sender_id,body,created_at&conversation_id=eq.$conversationId&is_deleted=eq.false&order=created_at.desc&limit=50")
         return List(rows.length()) { index ->
             val item = rows.getJSONObject(index)
             val senderId = item.optString("sender_id")
@@ -163,6 +167,20 @@ class SupabaseUnivCupidRepository(
             val item = rows.getJSONObject(index)
             VibeRequest(
                 id = item.getString("id"),
+                requester = PublicProfile(item.getString("requester_id"), item.optString("display_name"), 0, item.optString("university"), item.optString("course"), emptyList(), 0),
+            )
+        }
+    }
+
+    override suspend fun loadIncomingVibeJoinRequests(): List<VibeJoinRequest> {
+        val rows = rest.post("rpc/get_incoming_vibe_join_requests", JSONObject().put("viewer_id", userId))
+        return List(rows.length()) { index ->
+            val item = rows.getJSONObject(index)
+            VibeJoinRequest(
+                id = item.getString("id"),
+                vibeId = item.getString("vibe_id"),
+                activity = item.optString("activity"),
+                caption = item.optString("caption"),
                 requester = PublicProfile(item.getString("requester_id"), item.optString("display_name"), 0, item.optString("university"), item.optString("course"), emptyList(), 0),
             )
         }
@@ -197,12 +215,24 @@ class SupabaseUnivCupidRepository(
         rest.post("rpc/send_vibe_request", JSONObject().put("target_user", targetUserId))
     }
 
+    override suspend fun requestToJoinVibe(vibeId: String) {
+        rest.post("rpc/request_to_join_vibe", JSONObject().put("target_vibe_id", vibeId))
+    }
+
     override suspend fun acceptVibeRequest(requestId: String) {
         rest.post("rpc/accept_vibe_request", JSONObject().put("request_id", requestId))
     }
 
     override suspend fun declineVibeRequest(requestId: String) {
         rest.post("rpc/decline_vibe_request", JSONObject().put("request_id", requestId))
+    }
+
+    override suspend fun acceptVibeJoinRequest(requestId: String) {
+        rest.post("rpc/accept_vibe_join_request", JSONObject().put("request_id", requestId))
+    }
+
+    override suspend fun declineVibeJoinRequest(requestId: String) {
+        rest.post("rpc/decline_vibe_join_request", JSONObject().put("request_id", requestId))
     }
 
     override suspend fun setCircleMembership(circleId: String, leave: Boolean) {
@@ -239,26 +269,24 @@ class SupabaseUnivCupidRepository(
     }
 
     override suspend fun sendReport(reportedUserId: String?, vibeId: String?, reason: String, details: String) {
-        rest.post("reports", JSONArray().put(JSONObject().apply {
-            put("reporter_id", userId)
-            if (!reportedUserId.isNullOrBlank()) put("reported_user_id", reportedUserId)
-            if (!vibeId.isNullOrBlank()) put("vibe_id", vibeId)
-            put("reason", reason)
-            put("details", details)
-            put("status", "open")
-        }))
+        rest.post("rpc/submit_report", JSONObject().apply {
+            if (!reportedUserId.isNullOrBlank()) put("p_reported_user_id", reportedUserId)
+            if (!vibeId.isNullOrBlank()) put("p_vibe_id", vibeId)
+            put("p_reason", reason)
+            put("p_details", details)
+        })
     }
 
     override suspend fun deleteMyVibe(vibeId: String) {
-        rest.delete("vibes?id=eq.$vibeId&user_id=eq.$userId")
+        rest.post("rpc/soft_delete_vibe", JSONObject().put("target_vibe_id", vibeId))
     }
 
     override suspend fun deleteMyMessage(messageId: String) {
-        rest.delete("messages?id=eq.$messageId&sender_id=eq.$userId")
+        rest.post("rpc/soft_delete_message", JSONObject().put("target_msg_id", messageId))
     }
 
     override suspend fun deleteMyCirclePost(postId: String) {
-        rest.delete("circle_posts?id=eq.$postId&user_id=eq.$userId")
+        rest.post("rpc/soft_delete_circle_post", JSONObject().put("target_post_id", postId))
     }
 
     private fun JSONObject.toVibePost(): VibePost = VibePost(
