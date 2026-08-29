@@ -21,6 +21,8 @@ interface UnivCupidRepository {
     suspend fun updateMyLocation(latitude: Double, longitude: Double)
     suspend fun loadNotifications(): List<AppNotification>
     suspend fun clearNotifications()
+    suspend fun createVibeTap(): String
+    suspend fun claimVibeTap(code: String)
     suspend fun loadIncomingVibeRequests(): List<VibeRequest>
     suspend fun loadIncomingVibeJoinRequests(): List<VibeJoinRequest>
     suspend fun loadVibesmates(): List<PublicProfile>
@@ -186,6 +188,12 @@ class SupabaseUnivCupidRepository(
 
     override suspend fun clearNotifications() {
         rest.post("rpc/clear_my_notifications", JSONObject())
+    }
+
+    override suspend fun createVibeTap(): String = rest.post("rpc/create_vibe_tap", JSONObject()).getJSONObject(0).getString("code")
+
+    override suspend fun claimVibeTap(code: String) {
+        rest.post("rpc/claim_vibe_tap", JSONObject().put("tap_code", code.trim().uppercase()))
     }
 
     override suspend fun loadIncomingVibeRequests(): List<VibeRequest> {

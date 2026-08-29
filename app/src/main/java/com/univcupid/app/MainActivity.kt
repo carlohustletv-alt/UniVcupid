@@ -4,6 +4,8 @@ import android.content.Intent
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.graphics.Bitmap
+import android.graphics.Color as AndroidColor
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -49,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -61,6 +64,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
 import com.univcupid.app.data.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -647,6 +655,7 @@ private fun ChatsScreen(repository: UnivCupidRepository, openProfile: (String) -
     var selectedConversation by remember { mutableStateOf<ConversationSummary?>(null) }
     var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
     var messageText by rememberSaveable { mutableStateOf("") }
+    var showVibeTap by rememberSaveable { mutableStateOf(false) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -659,6 +668,14 @@ private fun ChatsScreen(repository: UnivCupidRepository, openProfile: (String) -
     }
     fun loadMessages(conversation: ConversationSummary) { scope.launch { loading = true; runCatching { repository.loadMessages(conversation.id) }.onSuccess { messages = it; error = null }.onFailure { error = it.message }; loading = false } }
     LaunchedEffect(Unit) { load(); loadConnections() }
+
+    if (showVibeTap) {
+        VibeTapSheet(repository, onDismiss = { showVibeTap = false }) { message ->
+            notify(message)
+            loadConnections()
+            load()
+        }
+    }
 
     selectedConversation?.let { conversation ->
         Column(Modifier.fillMaxSize().padding(18.dp)) {
@@ -701,6 +718,7 @@ private fun ChatsScreen(repository: UnivCupidRepository, openProfile: (String) -
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Header("Chats", "Messages, connections, and VibesMates") }
+        item { OutlinedButton(onClick = { showVibeTap = true }, modifier = Modifier.fillMaxWidth()) { Text("📱 Vibe Tap · Connect phones together") } }
         if (requests.isNotEmpty()) {
             item { Text("Vibe requests", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
             items(requests, key = { it.id }) { request ->
@@ -1102,6 +1120,50 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
             Spacer(Modifier.height(20.dp))
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable private fun VibeTapSheet(repository: UnivCupidRepository, onDismiss: () -> Unit, notify: (String) -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var code by remember { mutableStateOf<String?>(null) }
+    var loading by remember { mutableStateOf(true) }
+    val scanner = remember {
+        GmsBarcodeScanning.getClient(context, GmsBarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build())
+    }
+    LaunchedEffect(Unit) {
+        runCatching { repository.createVibeTap() }
+            .onSuccess { code = it; loading = false }
+            .onFailure { notify(it.message ?: "Could not start Vibe Tap"); onDismiss() }
+    }
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Paper) {
+        Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Vibe Tap", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+            Text("Keep phones together, then let the other person scan. This one-time code expires in 5 minutes.", color = Muted, fontSize = 12.sp, textAlign = TextAlign.Center)
+            if (loading) LoadingCard("Creating your Vibe Tap...") else code?.let { tapCode ->
+                val image = remember(tapCode) { createQrImage("UNIVCUPID:TAP:$tapCode") }
+                Image(image, contentDescription = "Vibe Tap QR code", modifier = Modifier.size(220.dp).background(Color.White).padding(10.dp))
+                Text(tapCode, color = Violet, fontWeight = FontWeight.ExtraBold, fontSize = 20.sp)
+            }
+            Button(onClick = {
+                scanner.startScan().addOnSuccessListener { barcode ->
+                    val scanned = barcode.rawValue.orEmpty().removePrefix("UNIVCUPID:TAP:")
+                    scope.launch {
+                        runCatching { repository.claimVibeTap(scanned) }
+                            .onSuccess { notify("VibesMate connected. Your chat is ready."); onDismiss() }
+                            .onFailure { notify(it.message ?: "That Vibe Tap is unavailable") }
+                    }
+                }.addOnFailureListener { notify("Could not scan the Vibe Tap") }
+            }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Scan a Vibe Tap") }
+            TextButton(onDismiss) { Text("Close") }
+        }
+    }
+}
+
+private fun createQrImage(value: String) = QRCodeWriter().encode(value, BarcodeFormat.QR_CODE, 640, 640).let { matrix ->
+    Bitmap.createBitmap(640, 640, Bitmap.Config.ARGB_8888).apply {
+        for (x in 0 until 640) for (y in 0 until 640) setPixel(x, y, if (matrix[x, y]) AndroidColor.BLACK else AndroidColor.WHITE)
+    }.asImageBitmap()
 }
 
 @Composable private fun LoadingCard(text: String) { val shimmer by rememberInfiniteTransition(label = "loadingPulse").animateFloat(.72f, 1f, infiniteRepeatable(tween(850), RepeatMode.Reverse), label = "loadingAlpha"); Surface(shape = RoundedCornerShape(18.dp), color = VioletLight.copy(alpha = shimmer), modifier = Modifier.fillMaxWidth().graphicsLayer { scaleX = .99f + shimmer * .01f; scaleY = .99f + shimmer * .01f }) { Text(text, Modifier.padding(18.dp), color = Violet, fontWeight = FontWeight.Bold) } }
