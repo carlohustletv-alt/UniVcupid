@@ -137,7 +137,11 @@ private fun UnivCupidApp(callbackUri: Uri?) {
     var toast by remember { mutableStateOf<String?>(null) }
     var selectedPhoto by remember { mutableStateOf<VibePost?>(null) }
     var selectedProfileId by remember { mutableStateOf<String?>(null) }
+    var globalNotifications by remember { mutableStateOf<List<AppNotification>>(emptyList()) }
+    var showGlobalNotifications by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    fun refreshGlobalNotifications() { scope.launch { runCatching { repository.loadNotifications() }.onSuccess { globalNotifications = it } } }
+    LaunchedEffect(activeSession.userId, tab) { refreshGlobalNotifications() }
     val pulse by rememberInfiniteTransition(label = "fabPulse").animateFloat(
         initialValue = 0.96f,
         targetValue = 1.04f,
@@ -178,10 +182,14 @@ private fun UnivCupidApp(callbackUri: Uri?) {
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp).height(44.dp).graphicsLayer { scaleX = pulse; scaleY = pulse },
                 ) { Text("+ QUICK SHARE", Modifier.padding(horizontal = 14.dp), fontSize = 12.sp, fontWeight = FontWeight.Bold) }
             }
+            Surface(shape = CircleShape, color = Color.White, shadowElevation = 5.dp, modifier = Modifier.align(Alignment.TopEnd).padding(14.dp).clickable { showGlobalNotifications = true }) {
+                Text("🔔${if (globalNotifications.isNotEmpty()) " ${globalNotifications.size}" else ""}", Modifier.padding(horizontal = 11.dp, vertical = 9.dp), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
             AnimatedVisibilityToast(toast)
         }
     }
     selectedPhoto?.let { FullscreenPhoto(it) { selectedPhoto = null } }
+    if (showGlobalNotifications) NotificationSheet(globalNotifications, onDismiss = { showGlobalNotifications = false }, clear = { scope.launch { runCatching { repository.clearNotifications() }.onSuccess { globalNotifications = emptyList(); toast = "Notifications cleared" }.onFailure { toast = it.message ?: "Could not clear notifications" } } })
 
     toast?.let { LaunchedEffect(it) { delay(2600); toast = null } }
     if (shareOpen) ShareSheet2(onDismiss = { shareOpen = false }) { draft ->
@@ -760,8 +768,6 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     val context = LocalContext.current
     var privacy by remember { mutableStateOf(PrivacySettings()) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
-    var showNotifications by rememberSaveable { mutableStateOf(false) }
-    var notifications by remember { mutableStateOf<List<AppNotification>>(emptyList()) }
     var profile by remember { mutableStateOf<PublicProfile?>(null) }
     var uploadingAvatar by remember { mutableStateOf(false) }
     var myPosts by remember { mutableStateOf<List<VibePost>>(emptyList()) }
@@ -789,13 +795,12 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
                 .onFailure { notify(it.message ?: "Could not load profile") }
         }
     }
-    fun loadNotifications() { scope.launch { runCatching { repository.loadNotifications() }.onSuccess { notifications = it }.onFailure { notify(it.message ?: "Could not load notifications") } } }
     val locationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (!granted) notify("Location is optional. Enable it to receive nearby match alerts.")
         else {
             val manager = context.getSystemService(LocationManager::class.java)
             val location = runCatching { manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) ?: manager.getLastKnownLocation(LocationManager.GPS_PROVIDER) }.getOrNull()
-            if (location == null) notify("Location unavailable. Turn on Location and try again.") else scope.launch { runCatching { repository.updateMyLocation(location.latitude, location.longitude) }.onSuccess { notify("Nearby Cupid alerts are on"); loadNotifications() }.onFailure { notify(it.message ?: "Could not update location") } }
+            if (location == null) notify("Location unavailable. Turn on Location and try again.") else scope.launch { runCatching { repository.updateMyLocation(location.latitude, location.longitude) }.onSuccess { notify("Nearby Cupid alerts are on") }.onFailure { notify(it.message ?: "Could not update location") } }
         }
     }
     val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -814,17 +819,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
             }
         }
     }
-    LaunchedEffect(Unit) { loadProfile(); loadMyPosts(); loadPlanRequests(); loadNotifications() }
-
-    if (showNotifications) {
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            item { TextButton(onClick = { showNotifications = false }) { Text("‹ Back to You") }; Header("Notifications", "Your Vibes and Cupid activity") }
-            item { OutlinedButton(onClick = { scope.launch { runCatching { repository.clearNotifications() }.onSuccess { notifications = emptyList(); notify("Notifications cleared") }.onFailure { notify(it.message ?: "Could not clear notifications") } } }, enabled = notifications.isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("Clear notifications") } }
-            if (notifications.isEmpty()) item { EmptyCard("All caught up", "Reactions and nearby Cupid match alerts appear here.") }
-            else items(notifications, key = { it.id }) { item -> Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) { Text(item.title, fontWeight = FontWeight.Bold); Text(item.body + if (item.count > 1) " · ${item.count} reactions" else "", color = Muted, fontSize = 12.sp) } } }
-        }
-        return
-    }
+    LaunchedEffect(Unit) { loadProfile(); loadMyPosts(); loadPlanRequests() }
 
     if (showSettings) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -858,7 +853,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
                 openSettings = { showSettings = true },
             )
         }
-        item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { showNotifications = true }, modifier = Modifier.weight(1f)) { Text("🔔 ${notifications.size}") }; OutlinedButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) { val manager = context.getSystemService(LocationManager::class.java); val location = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); if (location == null) notify("Turn on Location and try again.") else scope.launch { repository.updateMyLocation(location.latitude, location.longitude); notify("Nearby Cupid alerts are on") } } else locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION) }, modifier = Modifier.weight(1f)) { Text("📍 Nearby Cupid") } } }
+        item { OutlinedButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) { val manager = context.getSystemService(LocationManager::class.java); val location = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); if (location == null) notify("Turn on Location and try again.") else scope.launch { repository.updateMyLocation(location.latitude, location.longitude); notify("Nearby Cupid alerts are on") } } else locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION) }, modifier = Modifier.fillMaxWidth()) { Text("📍 Nearby Cupid") } }
         item { Text("Your posts", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         when {
             loadingPosts -> item { LoadingCard("Loading your Vibes...") }
@@ -1156,6 +1151,17 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
                 }.addOnFailureListener { notify("Could not scan the Vibe Tap") }
             }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Scan a Vibe Tap") }
             TextButton(onDismiss) { Text("Close") }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable private fun NotificationSheet(notifications: List<AppNotification>, onDismiss: () -> Unit, clear: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Paper) {
+        LazyColumn(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { Text("Notifications", fontSize = 24.sp, fontWeight = FontWeight.Bold); TextButton(onClick = clear, enabled = notifications.isNotEmpty()) { Text("Clear all") } } }
+            if (notifications.isEmpty()) item { EmptyCard("All caught up", "Reactions and nearby Cupid match alerts appear here.") }
+            else items(notifications, key = { it.id }) { item -> Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) { Text(item.title, fontWeight = FontWeight.Bold); Text(item.body + if (item.count > 1) " · ${item.count} reactions" else "", color = Muted, fontSize = 12.sp) } } }
         }
     }
 }
