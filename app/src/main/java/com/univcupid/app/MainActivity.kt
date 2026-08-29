@@ -153,7 +153,7 @@ private fun UnivCupidApp(callbackUri: Uri?) {
                     Tab.VIBE -> VibeScreen(repository, openPhoto = { selectedPhoto = it }, openProfile = { selectedProfileId = it }) { toast = it }
                     Tab.CIRCLES -> CirclesScreen(repository, storage, activeSession.userId) { toast = it }
                     Tab.CUPID -> CupidScreen(repository) { toast = it }
-                    Tab.CHATS -> ChatsScreen(repository) { toast = it }
+                    Tab.CHATS -> ChatsScreen(repository, openProfile = { selectedProfileId = it }) { toast = it }
                     Tab.YOU -> ProfileScreen(activeSession, repository, onSignOut = { session = null }, openPhoto = { selectedPhoto = it }, openProfile = { selectedProfileId = it }) { toast = it }
                 }
             }
@@ -646,8 +646,10 @@ private fun CupidScreen(repository: UnivCupidRepository, notify: (String) -> Uni
 }
 
 @Composable
-private fun ChatsScreen(repository: UnivCupidRepository, notify: (String) -> Unit) {
+private fun ChatsScreen(repository: UnivCupidRepository, openProfile: (String) -> Unit, notify: (String) -> Unit) {
     var conversations by remember { mutableStateOf<List<ConversationSummary>>(emptyList()) }
+    var requests by remember { mutableStateOf<List<VibeRequest>>(emptyList()) }
+    var mates by remember { mutableStateOf<List<PublicProfile>>(emptyList()) }
     var selectedConversation by remember { mutableStateOf<ConversationSummary?>(null) }
     var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
     var messageText by rememberSaveable { mutableStateOf("") }
@@ -655,8 +657,14 @@ private fun ChatsScreen(repository: UnivCupidRepository, notify: (String) -> Uni
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     fun load() { scope.launch { loading = true; runCatching { repository.loadConversations() }.onSuccess { conversations = it; error = null }.onFailure { error = it.message }; loading = false } }
+    fun loadConnections() {
+        scope.launch {
+            runCatching { repository.loadIncomingVibeRequests() }.onSuccess { requests = it }
+            runCatching { repository.loadVibesmates() }.onSuccess { mates = it }
+        }
+    }
     fun loadMessages(conversation: ConversationSummary) { scope.launch { loading = true; runCatching { repository.loadMessages(conversation.id) }.onSuccess { messages = it; error = null }.onFailure { error = it.message }; loading = false } }
-    LaunchedEffect(Unit) { load() }
+    LaunchedEffect(Unit) { load(); loadConnections() }
 
     selectedConversation?.let { conversation ->
         Column(Modifier.fillMaxSize().padding(18.dp)) {
@@ -698,7 +706,35 @@ private fun ChatsScreen(repository: UnivCupidRepository, notify: (String) -> Uni
     }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Header("Chats", "Messages and matched conversations") }
+        item { Header("Chats", "Messages, connections, and VibesMates") }
+        if (requests.isNotEmpty()) {
+            item { Text("Vibe requests", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+            items(requests, key = { it.id }) { request ->
+                VibeRequestCard(
+                    request = request,
+                    openProfile = { openProfile(request.requester.id) },
+                    accept = {
+                        scope.launch {
+                            runCatching { repository.acceptVibeRequest(request.id) }
+                                .onSuccess { notify("VibesMate added. Your chat is ready."); loadConnections(); load() }
+                                .onFailure { notify(it.message ?: "Could not accept") }
+                        }
+                    },
+                    decline = {
+                        scope.launch {
+                            runCatching { repository.declineVibeRequest(request.id) }
+                                .onSuccess { notify("Request declined"); loadConnections() }
+                                .onFailure { notify(it.message ?: "Could not decline") }
+                        }
+                    },
+                )
+            }
+        }
+        if (mates.isNotEmpty()) {
+            item { Text("VibesMates", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+            items(mates, key = { it.id }) { mate -> MateCard(mate) { openProfile(mate.id) } }
+        }
+        item { Text("Conversations", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         if (loading) item { LoadingCard("Loading chats...") }
         else if (error != null) item { ErrorCard(error.orEmpty()) { load() } }
         else if (conversations.isEmpty()) item { EmptyCard("No chats yet", "When you match in Cupid, conversations appear here.") }
@@ -712,9 +748,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     var privacy by remember { mutableStateOf(PrivacySettings()) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
     var myPosts by remember { mutableStateOf<List<VibePost>>(emptyList()) }
-    var requests by remember { mutableStateOf<List<VibeRequest>>(emptyList()) }
     var planRequests by remember { mutableStateOf<List<VibeJoinRequest>>(emptyList()) }
-    var mates by remember { mutableStateOf<List<PublicProfile>>(emptyList()) }
     var loadingPosts by remember { mutableStateOf(true) }
     var postsError by remember { mutableStateOf<String?>(null) }
     fun loadMyPosts() {
@@ -726,14 +760,12 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
             loadingPosts = false
         }
     }
-    fun loadSocial() {
+    fun loadPlanRequests() {
         scope.launch {
-            runCatching { repository.loadIncomingVibeRequests() }.onSuccess { requests = it }
             runCatching { repository.loadIncomingVibeJoinRequests() }.onSuccess { planRequests = it }
-            runCatching { repository.loadVibesmates() }.onSuccess { mates = it }
         }
     }
-    LaunchedEffect(Unit) { loadMyPosts(); loadSocial() }
+    LaunchedEffect(Unit) { loadMyPosts(); loadPlanRequests() }
 
     if (showSettings) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -758,34 +790,6 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { Header("You", session.email) }
         item { OutlinedButton(onClick = { showSettings = true }, modifier = Modifier.fillMaxWidth()) { Text("Settings & Privacy") } }
-        item { Text("Vibe Requests", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
-        if (requests.isEmpty()) item { EmptyCard("No pending requests", "When someone sends a vibe, you can accept them as a VibesMate here.") }
-        else items(requests, key = { it.id }) { request -> VibeRequestCard(request, openProfile = { openProfile(request.requester.id) }, accept = { scope.launch { runCatching { repository.acceptVibeRequest(request.id) }.onSuccess { notify("VibesMate added"); loadSocial() }.onFailure { notify(it.message ?: "Could not accept") } } }, decline = { scope.launch { runCatching { repository.declineVibeRequest(request.id) }.onSuccess { notify("Request declined"); loadSocial() }.onFailure { notify(it.message ?: "Could not decline") } } }) }
-        item { Text("Plan requests", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
-        if (planRequests.isEmpty()) item { EmptyCard("No plan requests", "When a student asks to join an open Vibe, you can approve it here.") }
-        else items(planRequests, key = { it.id }) { request ->
-            PlanJoinRequestCard(
-                request = request,
-                openProfile = { openProfile(request.requester.id) },
-                accept = {
-                    scope.launch {
-                        runCatching { repository.acceptVibeJoinRequest(request.id) }
-                            .onSuccess { notify("Plan accepted. A chat is ready."); loadSocial() }
-                            .onFailure { notify(it.message ?: "Could not accept") }
-                    }
-                },
-                decline = {
-                    scope.launch {
-                        runCatching { repository.declineVibeJoinRequest(request.id) }
-                            .onSuccess { notify("Plan request declined"); loadSocial() }
-                            .onFailure { notify(it.message ?: "Could not decline") }
-                    }
-                },
-            )
-        }
-        item { Text("VibesMates", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
-        if (mates.isEmpty()) item { EmptyCard("No VibesMates yet", "Send or accept vibe requests to unlock private VibesMate posts.") }
-        else items(mates, key = { it.id }) { mate -> MateCard(mate) { openProfile(mate.id) } }
         item { Text("Your posts", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         when {
             loadingPosts -> item { LoadingCard("Loading your Vibes...") }
@@ -803,6 +807,26 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
                         }
                     }
                 )
+                planRequests.filter { it.vibeId == post.id }.forEach { request ->
+                    PlanJoinRequestCard(
+                        request = request,
+                        openProfile = { openProfile(request.requester.id) },
+                        accept = {
+                            scope.launch {
+                                runCatching { repository.acceptVibeJoinRequest(request.id) }
+                                    .onSuccess { notify("Plan accepted. Your chat is ready."); loadPlanRequests() }
+                                    .onFailure { notify(it.message ?: "Could not accept") }
+                            }
+                        },
+                        decline = {
+                            scope.launch {
+                                runCatching { repository.declineVibeJoinRequest(request.id) }
+                                    .onSuccess { notify("Plan request declined"); loadPlanRequests() }
+                                    .onFailure { notify(it.message ?: "Could not decline") }
+                            }
+                        },
+                    )
+                }
             }
         }
     }
