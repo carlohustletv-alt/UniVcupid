@@ -51,6 +51,13 @@ data class VibeJoinRequest(
     val requester: PublicProfile,
 )
 
+data class AppNotification(
+    val id: String,
+    val title: String,
+    val body: String,
+    val count: Int = 1,
+)
+
 data class CircleSummary(
     val id: String,
     val name: String,

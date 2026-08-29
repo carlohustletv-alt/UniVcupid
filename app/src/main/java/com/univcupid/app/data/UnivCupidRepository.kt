@@ -18,6 +18,9 @@ interface UnivCupidRepository {
     suspend fun loadProfile(profileUserId: String): ProfileDetail
     suspend fun loadMyProfile(): PublicProfile
     suspend fun updateProfileAvatar(avatarUrl: String)
+    suspend fun updateMyLocation(latitude: Double, longitude: Double)
+    suspend fun loadNotifications(): List<AppNotification>
+    suspend fun clearNotifications()
     suspend fun loadIncomingVibeRequests(): List<VibeRequest>
     suspend fun loadIncomingVibeJoinRequests(): List<VibeJoinRequest>
     suspend fun loadVibesmates(): List<PublicProfile>
@@ -167,6 +170,22 @@ class SupabaseUnivCupidRepository(
 
     override suspend fun updateProfileAvatar(avatarUrl: String) {
         rest.post("rpc/update_my_profile_avatar", JSONObject().put("p_avatar_url", avatarUrl))
+    }
+
+    override suspend fun updateMyLocation(latitude: Double, longitude: Double) {
+        rest.post("rpc/update_my_location", JSONObject().put("p_latitude", latitude).put("p_longitude", longitude))
+    }
+
+    override suspend fun loadNotifications(): List<AppNotification> {
+        val rows = rest.post("rpc/get_my_notifications", JSONObject())
+        return List(rows.length()) { index ->
+            val item = rows.getJSONObject(index)
+            AppNotification(item.getString("id"), item.optString("title"), item.optString("body"), item.optInt("notification_count", 1))
+        }
+    }
+
+    override suspend fun clearNotifications() {
+        rest.post("rpc/clear_my_notifications", JSONObject())
     }
 
     override suspend fun loadIncomingVibeRequests(): List<VibeRequest> {

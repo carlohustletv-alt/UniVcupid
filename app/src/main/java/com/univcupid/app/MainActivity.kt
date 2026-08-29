@@ -1,6 +1,9 @@
 package com.univcupid.app
 
 import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -55,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.univcupid.app.data.*
@@ -738,6 +742,8 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     val context = LocalContext.current
     var privacy by remember { mutableStateOf(PrivacySettings()) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showNotifications by rememberSaveable { mutableStateOf(false) }
+    var notifications by remember { mutableStateOf<List<AppNotification>>(emptyList()) }
     var profile by remember { mutableStateOf<PublicProfile?>(null) }
     var uploadingAvatar by remember { mutableStateOf(false) }
     var myPosts by remember { mutableStateOf<List<VibePost>>(emptyList()) }
@@ -765,6 +771,15 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
                 .onFailure { notify(it.message ?: "Could not load profile") }
         }
     }
+    fun loadNotifications() { scope.launch { runCatching { repository.loadNotifications() }.onSuccess { notifications = it }.onFailure { notify(it.message ?: "Could not load notifications") } } }
+    val locationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (!granted) notify("Location is optional. Enable it to receive nearby match alerts.")
+        else {
+            val manager = context.getSystemService(LocationManager::class.java)
+            val location = runCatching { manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) ?: manager.getLastKnownLocation(LocationManager.GPS_PROVIDER) }.getOrNull()
+            if (location == null) notify("Location unavailable. Turn on Location and try again.") else scope.launch { runCatching { repository.updateMyLocation(location.latitude, location.longitude) }.onSuccess { notify("Nearby Cupid alerts are on"); loadNotifications() }.onFailure { notify(it.message ?: "Could not update location") } }
+        }
+    }
     val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
             scope.launch {
@@ -781,7 +796,17 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
             }
         }
     }
-    LaunchedEffect(Unit) { loadProfile(); loadMyPosts(); loadPlanRequests() }
+    LaunchedEffect(Unit) { loadProfile(); loadMyPosts(); loadPlanRequests(); loadNotifications() }
+
+    if (showNotifications) {
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            item { TextButton(onClick = { showNotifications = false }) { Text("‹ Back to You") }; Header("Notifications", "Your Vibes and Cupid activity") }
+            item { OutlinedButton(onClick = { scope.launch { runCatching { repository.clearNotifications() }.onSuccess { notifications = emptyList(); notify("Notifications cleared") }.onFailure { notify(it.message ?: "Could not clear notifications") } } }, enabled = notifications.isNotEmpty(), modifier = Modifier.fillMaxWidth()) { Text("Clear notifications") } }
+            if (notifications.isEmpty()) item { EmptyCard("All caught up", "Reactions and nearby Cupid match alerts appear here.") }
+            else items(notifications, key = { it.id }) { item -> Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) { Text(item.title, fontWeight = FontWeight.Bold); Text(item.body + if (item.count > 1) " · ${item.count} reactions" else "", color = Muted, fontSize = 12.sp) } } }
+        }
+        return
+    }
 
     if (showSettings) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -815,6 +840,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
                 openSettings = { showSettings = true },
             )
         }
+        item { Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) { OutlinedButton(onClick = { showNotifications = true }, modifier = Modifier.weight(1f)) { Text("🔔 ${notifications.size}") }; OutlinedButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) { val manager = context.getSystemService(LocationManager::class.java); val location = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); if (location == null) notify("Turn on Location and try again.") else scope.launch { repository.updateMyLocation(location.latitude, location.longitude); notify("Nearby Cupid alerts are on") } } else locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION) }, modifier = Modifier.weight(1f)) { Text("📍 Nearby Cupid") } } }
         item { Text("Your posts", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         when {
             loadingPosts -> item { LoadingCard("Loading your Vibes...") }
