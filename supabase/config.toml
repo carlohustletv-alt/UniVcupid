@@ -1,0 +1,34 @@
+project_id = "ssanipbptgzcahrxzzrq"
+
+[functions.vibe-feed]
+verify_jwt = false
+
+[functions.publish-vibe]
+verify_jwt = false
+
+[functions.react-vibe]
+verify_jwt = false
+
+[functions.join-circle]
+verify_jwt = false
+
+[functions.cupid-like]
+verify_jwt = false
+
+[functions.send-message]
+verify_jwt = false
+
+[functions.update-privacy]
+verify_jwt = false
+
+[functions.ensure-profile]
+verify_jwt = false
+
+[functions.circles-list]
+verify_jwt = false
+
+[functions.cupid-candidates]
+verify_jwt = false
+
+[functions.conversations-list]
+verify_jwt = false

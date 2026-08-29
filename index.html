@@ -1,0 +1,1467 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UnivCupid | Find your circle. Meet your person.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..800;1,9..40,400..800&family=Fraunces:ital,opsz,wght@0,9..144,500..800;1,9..144,500..800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Background ambient blobs -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <main class="app-shell">
+      <!-- Phone Mockup Container -->
+      <section class="mobile-app" id="mobileApp" aria-label="UnivCupid Experience">
+        
+        <!-- ================= AUTH SCREEN: CAMPUS PASSPORT AUTH & FAST-PASS ================= -->
+        <section class="auth-screen-view" id="authScreen" aria-label="Campus Login and Sign Up">
+          <!-- Auth Top Bar -->
+          <div class="auth-top-bar">
+            <div class="auth-brand-badge">
+              <span class="auth-brand-icon">💘</span>
+              <span class="auth-brand-title">UnivCupid</span>
+            </div>
+            <div class="supabase-status-pill" id="supabaseStatusPill" title="Connected to Supabase (ssanipbptgzcahrxzzrq)">
+              <span class="status-dot online"></span>
+              <span class="status-label">Supabase Live</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Holographic Student Passport Preview -->
+          <div class="auth-passport-preview-container">
+            <div class="holographic-passport-card" id="holographicCard">
+              <div class="card-shimmer-overlay"></div>
+              <div class="hologram-header">
+                <div class="uni-emblem-badge" id="previewUniBadge">🎓 CLSU</div>
+                <span class="verified-passport-tag">VERIFIED STUDENT ID</span>
+              </div>
+              <div class="hologram-body">
+                <div class="hologram-avatar-wrap">
+                  <img id="previewAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Avatar" />
+                  <span class="hologram-mood-badge" id="previewMoodBadge">☕</span>
+                </div>
+                <div class="hologram-student-details">
+                  <h3 id="previewStudentName">Carlo Santos</h3>
+                  <p class="hologram-program" id="previewStudentCourse">B.S. Computer Science · Year 3</p>
+                  <p class="hologram-campus" id="previewStudentUni">Central Luzon State University</p>
+                </div>
+              </div>
+              <div class="hologram-footer">
+                <span class="hologram-id-number" id="previewStudentId">PASS #2026-4920</span>
+                <span class="hologram-spark-score">✦ 94% MUTUAL VIBE</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Auth Mode Segmented Control -->
+          <div class="auth-tabs-segmented" id="authModeTabs">
+            <button class="auth-tab-btn active" data-mode="fastpass">
+              <span>⚡</span> Fast-Pass
+            </button>
+            <button class="auth-tab-btn" data-mode="signup">
+              <span>🎓</span> Issue ID
+            </button>
+            <button class="auth-tab-btn" data-mode="signin">
+              <span>🔑</span> Sign In
+            </button>
+          </div>
+
+          <!-- Mode 1: 1-Tap Campus Fast-Pass (Quick Student Switcher) -->
+          <div class="auth-sub-panel active" id="panelFastPass">
+            <div class="panel-intro">
+              <h4>Tap a student pass to jump in:</h4>
+              <p>Instant sign-in with live Supabase seed profiles & campus vibes.</p>
+            </div>
+
+            <div class="fast-pass-grid" id="fastPassGrid">
+              <button type="button" class="fast-pass-card active" data-email="carlo.demo@univcupid.test" data-name="Carlo Santos" data-uni="CLSU" data-course="Computer Science" data-avatar="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" data-mood="☕">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Carlo" />
+                <div class="fp-details">
+                  <strong>Carlo Santos <span>• 21</span></strong>
+                  <small>CLSU · Computer Science</small>
+                </div>
+                <span class="fp-arrow">→</span>
+              </button>
+
+              <button type="button" class="fast-pass-card" data-email="anna.demo@univcupid.test" data-name="Anna Reyes" data-uni="CLSU" data-course="Industrial Engineering" data-avatar="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=200&q=80" data-mood="🎨">
+                <img src="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=150&q=80" alt="Anna" />
+                <div class="fp-details">
+                  <strong>Anna Reyes <span>• 21</span></strong>
+                  <small>CLSU · Industrial Engineering</small>
+                </div>
+                <span class="fp-arrow">→</span>
+              </button>
+
+              <button type="button" class="fast-pass-card" data-email="mia.demo@univcupid.test" data-name="Mia Dela Cruz" data-uni="UP Diliman" data-course="Architecture" data-avatar="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80" data-mood="📚">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80" alt="Mia" />
+                <div class="fp-details">
+                  <strong>Mia Dela Cruz <span>• 20</span></strong>
+                  <small>UP Diliman · Architecture</small>
+                </div>
+                <span class="fp-arrow">→</span>
+              </button>
+
+              <button type="button" class="fast-pass-card" data-email="marcus.demo@univcupid.test" data-name="Marcus Villanueva" data-uni="DLSU" data-course="Information Systems" data-avatar="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=200&q=80" data-mood="🎮">
+                <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80" alt="Marcus" />
+                <div class="fp-details">
+                  <strong>Marcus Villanueva <span>• 23</span></strong>
+                  <small>DLSU · Info Systems</small>
+                </div>
+                <span class="fp-arrow">→</span>
+              </button>
+
+              <button type="button" class="fast-pass-card" data-email="bea.demo@univcupid.test" data-name="Bea Mendoza" data-uni="UST" data-course="Medical Technology" data-avatar="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80" data-mood="🔬">
+                <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80" alt="Bea" />
+                <div class="fp-details">
+                  <strong>Bea Mendoza <span>• 19</span></strong>
+                  <small>UST · Medical Technology</small>
+                </div>
+                <span class="fp-arrow">→</span>
+              </button>
+
+              <button type="button" class="fast-pass-card" data-email="joshua.demo@univcupid.test" data-name="Joshua Garcia" data-uni="Ateneo de Manila" data-course="Management Engineering" data-avatar="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80" data-mood="🏀">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80" alt="Joshua" />
+                <div class="fp-details">
+                  <strong>Joshua Garcia <span>• 22</span></strong>
+                  <small>Ateneo · Management Eng</small>
+                </div>
+                <span class="fp-arrow">→</span>
+              </button>
+            </div>
+
+            <button type="button" class="auth-submit-btn" id="fastPassLoginBtn">
+              Enter Campus as <span id="fastPassSelectedName">Carlo</span> ✦
+            </button>
+          </div>
+
+          <!-- Mode 2: Issue Campus Passport (Sign Up Form) -->
+          <div class="auth-sub-panel" id="panelSignUp">
+            <div class="panel-intro">
+              <h4>Create Your Student Passport:</h4>
+              <p>Registered and verified in live Supabase database.</p>
+            </div>
+
+            <form class="auth-form" id="signUpForm">
+              <div class="form-row">
+                <label class="form-label" for="signupName">Full Name / Display Name</label>
+                <input type="text" id="signupName" class="auth-input" placeholder="e.g. Carlo Santos" required />
+              </div>
+
+              <!-- University Campus Chips Picker -->
+              <div class="form-row">
+                <label class="form-label">Select University Campus:</label>
+                <div class="uni-chips-grid" id="signupUniChips">
+                  <button type="button" class="uni-chip active" data-uni="CLSU" data-name="Central Luzon State University">🎓 CLSU</button>
+                  <button type="button" class="uni-chip" data-uni="UP Diliman" data-name="University of the Philippines">🌿 UP Diliman</button>
+                  <button type="button" class="uni-chip" data-uni="Ateneo" data-name="Ateneo de Manila University">🦅 Ateneo</button>
+                  <button type="button" class="uni-chip" data-uni="DLSU" data-name="De La Salle University">🏹 DLSU</button>
+                  <button type="button" class="uni-chip" data-uni="UST" data-name="University of Santo Tomas">🐯 UST</button>
+                  <button type="button" class="uni-chip" data-uni="PUP" data-name="Polytechnic University of the Philippines">🔴 PUP</button>
+                  <button type="button" class="uni-chip" data-uni="FEU" data-name="Far Eastern University">🔰 FEU</button>
+                  <button type="button" class="uni-chip" data-uni="Mapúa" data-name="Mapúa University">🏛️ Mapúa</button>
+                </div>
+                <input type="hidden" id="signupUni" value="CLSU" />
+              </div>
+
+              <div class="form-row-2col">
+                <div>
+                  <label class="form-label" for="signupCourse">Major / Degree</label>
+                  <input type="text" id="signupCourse" class="auth-input" placeholder="e.g. Computer Science" value="Computer Science" required />
+                </div>
+                <div>
+                  <label class="form-label" for="signupAge">Age</label>
+                  <input type="number" id="signupAge" class="auth-input" value="21" min="18" max="80" required />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label" for="signupEmail">Student / Personal Email</label>
+                <input type="email" id="signupEmail" class="auth-input" placeholder="name@university.edu.ph" required />
+              </div>
+
+              <div class="form-row">
+                <label class="form-label" for="signupPassword">Password</label>
+                <input type="password" id="signupPassword" class="auth-input" placeholder="At least 6 characters" minlength="6" required />
+              </div>
+
+              <!-- Campus Mood / Status -->
+              <div class="form-row">
+                <label class="form-label">Starter Campus Mood:</label>
+                <div class="mood-chips-row" id="signupMoodChips">
+                  <button type="button" class="mood-chip active" data-emoji="☕" data-text="Caffeine powered & studying">☕ Caffeine</button>
+                  <button type="button" class="mood-chip" data-emoji="🎮" data-text="Grinding games in dorm lounge">🎮 Gaming</button>
+                  <button type="button" class="mood-chip" data-emoji="📚" data-text="In the library zone">📚 Study</button>
+                  <button type="button" class="mood-chip" data-emoji="🍜" data-text="Craving midnight food trip">🍜 Foodie</button>
+                  <button type="button" class="mood-chip" data-emoji="⚡" data-text="Free to hang out!">⚡ Social</button>
+                </div>
+              </div>
+
+              <button type="submit" class="auth-submit-btn" id="submitSignUpBtn">
+                Issue Passport & Connect to Supabase ✦
+              </button>
+            </form>
+          </div>
+
+          <!-- Mode 3: Sign In with Existing Supabase Account -->
+          <div class="auth-sub-panel" id="panelSignIn">
+            <div class="panel-intro">
+              <h4>Welcome Back to Campus</h4>
+              <p>Sign in with your university or Supabase credentials.</p>
+            </div>
+
+            <form class="auth-form" id="signInForm">
+              <div class="form-row">
+                <label class="form-label" for="signinEmail">Email</label>
+                <input type="email" id="signinEmail" class="auth-input" placeholder="e.g. carlo.demo@univcupid.test" value="carlo.demo@univcupid.test" required />
+              </div>
+
+              <div class="form-row">
+                <label class="form-label" for="signinPassword">Password</label>
+                <input type="password" id="signinPassword" class="auth-input" placeholder="Password" value="UnivCupidDemo!2026" required />
+              </div>
+
+              <button type="submit" class="auth-submit-btn" id="submitSignInBtn">
+                Sign In to Campus ✦
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- ================= MAIN APP VIEWPORT (AUTHENTICATED) ================= -->
+        <div class="main-app-viewport" id="mainAppViewport">
+          <!-- TOP APP BAR -->
+          <header class="topbar">
+            <div class="brand-greeting">
+              <div class="campus-time-tag">
+                <span class="live-pulse"></span>
+                <span id="campusTimeDisplay">CLSU CAMPUS • 6:42 PM</span>
+              </div>
+              <h1>Good evening, <em id="topbarUserName">Carlo</em> <span class="sparkle-icon">✦</span></h1>
+            </div>
+            <button class="avatar user-avatar" id="topAvatarBtn" aria-label="Open your profile">
+              <img id="topbarAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="User" />
+              <span class="avatar-status-badge" id="topbarAvatarBadge">☕</span>
+            </button>
+          </header>
+
+          <!-- SCREEN CONTENT CONTAINER (Tabs) -->
+          <div class="screens-viewport">
+
+          <!-- ================= TAB 1: VIBE (FEED) ================= -->
+          <section class="screen-view active" id="tab-vibe" aria-label="Campus Vibe Feed">
+            <!-- Vibe filter selector -->
+            <section class="vibe-select">
+              <div class="section-heading">
+                <h2>What's the vibe?</h2>
+                <span class="vibe-subtitle">Tap to filter campus</span>
+              </div>
+              <div class="vibe-pills" id="vibePills">
+                <button class="vibe-pill active" data-vibe="all"><span>✨</span> All Vibes</button>
+                <button class="vibe-pill" data-vibe="chill"><span>☕</span> Chill</button>
+                <button class="vibe-pill" data-vibe="study"><span>✎</span> Study</button>
+                <button class="vibe-pill" data-vibe="gaming"><span>🎮</span> Gaming</button>
+                <button class="vibe-pill" data-vibe="food"><span>🍜</span> Food</button>
+                <button class="vibe-pill" data-vibe="date"><span>♡</span> Dating</button>
+              </div>
+            </section>
+
+            <!-- Campus Pulse Notice -->
+            <div class="campus-pulse-bar">
+              <span class="pulse-emoji">🔥</span>
+              <p><strong>128 students</strong> active around campus right now</p>
+            </div>
+
+            <!-- Campus Energy Live Breakdown Meter -->
+            <div class="campus-energy-meter" id="campusEnergyMeter">
+              <div class="energy-header">
+                <span class="energy-title">⚡ Live Campus Energy</span>
+                <span class="energy-live-tag"><span class="live-pulse"></span> 94% High Vibe</span>
+              </div>
+              <div class="energy-bar-track">
+                <div class="energy-segment seg-study" style="width: 50%;" title="Study: 50%"></div>
+                <div class="energy-segment seg-gaming" style="width: 24%;" title="Gaming: 24%"></div>
+                <div class="energy-segment seg-food" style="width: 16%;" title="Food Trip: 16%"></div>
+                <div class="energy-segment seg-date" style="width: 10%;" title="Dating: 10%"></div>
+              </div>
+              <div class="energy-legend-row">
+                <span><b style="color: var(--primary)">●</b> ☕ Study 50%</span>
+                <span><b style="color: #3b82f6">●</b> 🎮 Gaming 24%</span>
+                <span><b style="color: #f59e0b">●</b> 🍜 Food 16%</span>
+                <span><b style="color: var(--coral)">●</b> 💘 Dating 10%</span>
+              </div>
+            </div>
+
+            <!-- Feed Moments -->
+            <section class="feed-section" id="feedCardsContainer">
+              <!-- Card 1: Anna -->
+              <article class="moment-card" data-category="chill date">
+                <div class="card-image-wrap">
+                  <img class="card-image" src="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=900&q=85" alt="Anna at coffee shop" />
+                  <div class="card-gradient-shade"></div>
+                  <div class="card-tags">
+                    <span class="live-pill"><i class="dot"></i> LIVE NOW</span>
+                    <span class="location-pill">📍 Campus Brews Cafe (200m)</span>
+                  </div>
+                  <div class="card-content-overlay">
+                    <div class="activity-badge">
+                      <span class="act-icon">☕</span>
+                      <span>Coffee & sketching</span>
+                      <small>12m ago</small>
+                    </div>
+                    <div class="author-info">
+                      <h3>Anna <span>• 21</span></h3>
+                      <p class="major-text">CLSU · Industrial Engineering</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-interactive-footer">
+                  <button class="action-btn react-btn" data-type="heart">
+                    <span class="icon">♡</span> <b class="count">24</b>
+                  </button>
+                  <button class="action-btn join-btn" data-author="Anna">
+                    <span>🙌</span> <b>I'm down</b>
+                  </button>
+                  <button class="action-btn chat-direct-btn" data-user="Anna" aria-label="Direct message Anna">
+                    <span>↗</span>
+                  </button>
+                </div>
+              </article>
+
+              <!-- Card 2: Marcus (Gaming) -->
+              <article class="moment-card" data-category="gaming chill">
+                <div class="card-image-wrap">
+                  <img class="card-image" src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=900&q=85" alt="Gaming session in dorm" />
+                  <div class="card-gradient-shade"></div>
+                  <div class="card-tags">
+                    <span class="live-pill"><i class="dot"></i> HAPPENING</span>
+                    <span class="location-pill">📍 Dorm Hall B · Lounge 3</span>
+                  </div>
+                  <div class="card-content-overlay">
+                    <div class="activity-badge">
+                      <span class="act-icon">🎮</span>
+                      <span>Mario Kart & Smash Bros</span>
+                      <small>25m ago</small>
+                    </div>
+                    <div class="author-info">
+                      <h3>Marcus & Friends <span>• 20</span></h3>
+                      <p class="major-text">CLSU · Computer Science</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-interactive-footer">
+                  <button class="action-btn react-btn" data-type="fire">
+                    <span class="icon">🔥</span> <b class="count">19</b>
+                  </button>
+                  <button class="action-btn join-btn" data-author="Marcus">
+                    <span>🎮</span> <b>Drop in</b>
+                  </button>
+                  <button class="action-btn chat-direct-btn" data-user="Marcus" aria-label="Message Marcus">
+                    <span>↗</span>
+                  </button>
+                </div>
+              </article>
+
+              <!-- Card 3: Sophia (Food Run) -->
+              <article class="moment-card" data-category="food chill">
+                <div class="card-image-wrap">
+                  <img class="card-image" src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=900&q=85" alt="Late night ramen run" />
+                  <div class="card-gradient-shade"></div>
+                  <div class="card-tags">
+                    <span class="live-pill"><i class="dot"></i> LEAVING SOON</span>
+                    <span class="location-pill">📍 West Campus Gate (5m)</span>
+                  </div>
+                  <div class="card-content-overlay">
+                    <div class="activity-badge">
+                      <span class="act-icon">🍜</span>
+                      <span>Midnight Ramen Run! 2 car spots</span>
+                      <small>30m ago</small>
+                    </div>
+                    <div class="author-info">
+                      <h3>Sophia <span>• 22</span></h3>
+                      <p class="major-text">CLSU · Business Admin</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-interactive-footer">
+                  <button class="action-btn react-btn" data-type="yum">
+                    <span class="icon">😋</span> <b class="count">31</b>
+                  </button>
+                  <button class="action-btn join-btn" data-author="Sophia">
+                    <span>🚗</span> <b>Grab a seat</b>
+                  </button>
+                  <button class="action-btn chat-direct-btn" data-user="Sophia" aria-label="Message Sophia">
+                    <span>↗</span>
+                  </button>
+                </div>
+              </article>
+            </section>
+
+            <!-- Drop-in Circle Banner -->
+            <section class="circle-feature-banner">
+              <div class="circle-avatar-icon">🎮<b></b></div>
+              <div class="circle-banner-text">
+                <p class="kicker">COMMUNITY DROP-IN</p>
+                <h3>Gaming & Esports Club</h3>
+                <p class="sub-text">42 students active tonight</p>
+              </div>
+              <button class="circle-quick-join" id="circleQuickJoinBtn">Join <span>+</span></button>
+            </section>
+
+            <!-- People You May Vibe With -->
+            <section class="people-section">
+              <div class="section-heading">
+                <div>
+                  <p class="kicker">MATCH RADAR</p>
+                  <h2>People you may vibe with</h2>
+                </div>
+                <button class="text-link-btn" id="seeAllCupidBtn">See all ✦</button>
+              </div>
+              <div class="people-row">
+                <button class="person-card" data-person="Mia" data-major="Psychology" data-vibe="87%">
+                  <div class="person-photo">
+                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80" alt="Mia" />
+                    <span class="person-vibe-emoji">☕</span>
+                  </div>
+                  <strong>Mia, 20</strong>
+                  <small><b>87%</b> mutual vibe</small>
+                </button>
+                <button class="person-card" data-person="Joshua" data-major="Fine Arts" data-vibe="79%">
+                  <div class="person-photo">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80" alt="Joshua" />
+                    <span class="person-vibe-emoji">🎮</span>
+                  </div>
+                  <strong>Joshua, 21</strong>
+                  <small><b>79%</b> mutual vibe</small>
+                </button>
+                <button class="person-card" data-person="Bea" data-major="Architecture" data-vibe="76%">
+                  <div class="person-photo">
+                    <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80" alt="Bea" />
+                    <span class="person-vibe-emoji">✎</span>
+                  </div>
+                  <strong>Bea, 22</strong>
+                  <small><b>76%</b> mutual vibe</small>
+                </button>
+              </div>
+            </section>
+          </section>
+
+          <!-- ================= TAB: REELS (CAMPUS SHORTS) ================= -->
+          <section class="screen-view reels-screen" id="tab-reels" aria-label="Campus Reels">
+            <!-- Reels Top Bar -->
+            <div class="reels-top-bar">
+              <div class="reels-brand-tag">
+                <span class="reels-icon">🎬</span>
+                <h2>Campus Reels</h2>
+                <span class="reels-live-pill"><i class="dot"></i> CLSU LIVE</span>
+              </div>
+              <div class="reels-top-actions">
+                <button class="reels-audio-toggle" id="reelsAudioBtn" aria-label="Toggle audio">
+                  <span class="sound-icon" id="reelsSoundIcon">🔊</span>
+                </button>
+                <button class="reels-create-btn" id="reelsCreateBtn" aria-label="Post a reel">
+                  <span>+</span> Reel
+                </button>
+              </div>
+            </div>
+
+            <!-- Vertical Reels Viewport -->
+            <div class="reels-deck" id="reelsDeck">
+              <!-- Active Reel Item -->
+              <div class="reel-item active" id="activeReelCard">
+                <!-- Video or Animated Media Background -->
+                <div class="reel-media-wrapper" id="reelMediaWrapper">
+                  <video id="reelVideo" class="reel-video" loop playsinline muted autoplay poster="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=85">
+                    <source src="https://assets.mixkit.co/videos/preview/mixkit-group-of-friends-studying-in-a-library-4841-large.mp4" type="video/mp4">
+                  </video>
+                  <div class="reel-backdrop-gradient"></div>
+                  <!-- Play/Pause Tap Feedback Indicator -->
+                  <div class="reel-play-indicator" id="reelPlayIndicator">▶</div>
+                  <!-- Double Tap Big Pop Heart -->
+                  <div class="reel-burst-heart" id="reelBurstHeart">💖</div>
+                </div>
+
+                <!-- Right Action Bar -->
+                <div class="reel-actions-rail">
+                  <!-- Author Avatar with Follow Pill -->
+                  <div class="reel-author-avatar-wrap">
+                    <img id="reelAuthorImg" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80" alt="Author" />
+                    <button class="reel-follow-plus" id="reelFollowBtn">+</button>
+                  </div>
+
+                  <!-- Like Button -->
+                  <button class="reel-action-btn" id="reelLikeBtn" aria-label="Like reel">
+                    <div class="action-icon-circle">
+                      <span class="reel-heart-icon" id="reelHeartIcon">♡</span>
+                    </div>
+                    <span class="action-count" id="reelLikeCount">1.4k</span>
+                  </button>
+
+                  <!-- Comments Button -->
+                  <button class="reel-action-btn" id="reelCommentBtn" aria-label="Open comments">
+                    <div class="action-icon-circle">
+                      <span>💬</span>
+                    </div>
+                    <span class="action-count" id="reelCommentCount">86</span>
+                  </button>
+
+                  <!-- Remix / Drop-in Button -->
+                  <button class="reel-action-btn" id="reelDropInBtn" aria-label="Drop in with author">
+                    <div class="action-icon-circle">
+                      <span>🙌</span>
+                    </div>
+                    <span class="action-count">Down</span>
+                  </button>
+
+                  <!-- Share Button -->
+                  <button class="reel-action-btn" id="reelShareBtn" aria-label="Share reel">
+                    <div class="action-icon-circle">
+                      <span>↗</span>
+                    </div>
+                    <span class="action-count">Share</span>
+                  </button>
+
+                  <!-- Spinning Music Disc -->
+                  <div class="reel-music-disc-wrap">
+                    <div class="reel-disc spinning" id="reelDisc">
+                      <span class="disc-dot">🎵</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bottom Details Overlay -->
+                <div class="reel-bottom-info">
+                  <div class="reel-author-tag">
+                    <strong id="reelAuthorName">@maya_premed</strong>
+                    <span class="reel-verified-chip">🎓 Bio '24</span>
+                    <span class="reel-location-tag" id="reelLocation">📍 Main Library Fl 3</span>
+                  </div>
+
+                  <p class="reel-caption" id="reelCaption">
+                    10 minutes before the organic chemistry finals... we're surviving on iced matcha and pure hope 😭📚 #CLSU #ExamWeek #FinalsVibe
+                  </p>
+
+                  <div class="reel-sound-track">
+                    <span class="music-note-anim">🎵</span>
+                    <div class="marquee-text-wrapper">
+                      <span id="reelSoundTitle">Lo-Fi Campus Study Radio • CLSU Chill Beats (Original Audio)</span>
+                    </div>
+                  </div>
+                </div>
+          </section>
+
+          <!-- ================= TAB 2: CIRCLES ================= -->
+          <section class="screen-view" id="tab-circles" aria-label="Campus Circles">
+            <div class="screen-header">
+              <p class="kicker">CAMPUS COMMUNITIES</p>
+              <h2>Your Circles ◌</h2>
+            </div>
+
+            <!-- Circle Category Filter -->
+            <div class="circle-chips" id="circleCategoryChips">
+              <button class="circle-filter-chip active" data-cat="all">✦ All</button>
+              <button class="circle-filter-chip" data-cat="fun">🎮 Gaming</button>
+              <button class="circle-filter-chip" data-cat="coffee">☕ Cafe Crawl</button>
+              <button class="circle-filter-chip" data-cat="study">📚 Study</button>
+              <button class="circle-filter-chip" data-cat="active">🏃 Fitness</button>
+            </div>
+
+            <div class="circles-list" id="circlesListContainer">
+              <!-- Circle 1: Gaming Hub -->
+              <div class="circle-card visual-circle-card" data-cat="fun" data-circle-name="Gaming & Esports Hub">
+                <div class="circle-top-banner">
+                  <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" alt="Gaming" class="circle-banner-bg" />
+                  <div class="circle-banner-overlay"></div>
+                  <div class="circle-badge-tag">🎮 42 students live</div>
+                  <button class="circle-join-toggle-btn joined" data-circle="Gaming & Esports Hub">Joined ✓</button>
+                </div>
+                <div class="circle-card-details">
+                  <h3>Gaming & Esports Hub</h3>
+                  <div class="circle-photo-preview-grid">
+                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=150&q=80" alt="Activity" />
+                    <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=150&q=80" alt="Activity" />
+                    <img src="https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=150&q=80" alt="Activity" />
+                    <span class="more-photos-pill">+18 photos</span>
+                  </div>
+                  <div class="circle-action-row">
+                    <button class="circle-lounge-btn" data-circle="Gaming & Esports Hub">
+                      <span>💬 Open Lounge</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Circle 2: Cafe Crawl -->
+              <div class="circle-card visual-circle-card" data-cat="coffee" data-circle-name="Campus Cafe Crawl">
+                <div class="circle-top-banner">
+                  <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80" alt="Cafe" class="circle-banner-bg" />
+                  <div class="circle-banner-overlay"></div>
+                  <div class="circle-badge-tag">☕ 28 students live</div>
+                  <button class="circle-join-toggle-btn" data-circle="Campus Cafe Crawl">Join +</button>
+                </div>
+                <div class="circle-card-details">
+                  <h3>Campus Cafe Crawl</h3>
+                  <div class="circle-photo-preview-grid">
+                    <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=150&q=80" alt="Latte" />
+                    <img src="https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=150&q=80" alt="Pastry" />
+                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=150&q=80" alt="Boba" />
+                    <span class="more-photos-pill">+24 photos</span>
+                  </div>
+                  <div class="circle-action-row">
+                    <button class="circle-lounge-btn" data-circle="Campus Cafe Crawl">
+                      <span>💬 Open Lounge</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Circle 3: Study Sprints -->
+              <div class="circle-card visual-circle-card" data-cat="study" data-circle-name="Late Night Study Sprints">
+                <div class="circle-top-banner">
+                  <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=80" alt="Study" class="circle-banner-bg" />
+                  <div class="circle-banner-overlay"></div>
+                  <div class="circle-badge-tag">📚 64 students live</div>
+                  <button class="circle-join-toggle-btn" data-circle="Late Night Study Sprints">Join +</button>
+                </div>
+                <div class="circle-card-details">
+                  <h3>Late Night Study Sprints</h3>
+                  <div class="circle-photo-preview-grid">
+                    <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=150&q=80" alt="Books" />
+                    <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=150&q=80" alt="Desk" />
+                    <img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=150&q=80" alt="Library" />
+                    <span class="more-photos-pill">+32 photos</span>
+                  </div>
+                  <div class="circle-action-row">
+                    <button class="circle-lounge-btn" data-circle="Late Night Study Sprints">
+                      <span>💬 Open Lounge</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Create Circle Card -->
+            <button class="propose-circle-btn" id="proposeCircleBtn">
+              <span>✨</span>
+              <div>
+                <strong>Start a new circle</strong>
+                <small>Create a space for your club, dorm, or hobby</small>
+              </div>
+              <span class="arrow">→</span>
+            </button>
+          </section>
+
+          <!-- ================= TAB 3: CUPID (MATCHMAKER) ================= -->
+          <section class="screen-view" id="tab-cupid" aria-label="Campus Cupid Matchmaker">
+            <div class="cupid-header">
+              <div class="cupid-title-box">
+                <p class="kicker">CAMPUS MATCHMAKER</p>
+                <h2>Cupid 💘</h2>
+              </div>
+              <div class="cupid-badge">
+                <span>🔥 94% Spark Rate</span>
+              </div>
+            </div>
+
+            <!-- Swipeable / Interactive Multi-Photo Card Stack -->
+            <div class="cupid-deck" id="cupidDeck">
+              <!-- Active Cupid Card -->
+              <div class="cupid-card" id="cupidActiveCard">
+                <div class="cupid-card-photo-box">
+                  <!-- Segment Progress Bars -->
+                  <div class="cupid-photo-segments" id="cupidPhotoSegments">
+                    <span class="segment-bar active"></span>
+                    <span class="segment-bar"></span>
+                    <span class="segment-bar"></span>
+                  </div>
+
+                  <!-- Dynamic Swipe Action Stamps -->
+                  <div class="cupid-stamp stamp-like" id="stampLike">LIKE 💘</div>
+                  <div class="cupid-stamp stamp-nope" id="stampNope">PASS 🌙</div>
+                  <div class="cupid-stamp stamp-spark" id="stampSpark">SUPER SPARK ⚡</div>
+
+                  <!-- Tap Areas to cycle photos -->
+                  <div class="cupid-tap-left" id="cupidTapLeft" title="Previous photo"></div>
+                  <div class="cupid-tap-right" id="cupidTapRight" title="Next photo"></div>
+
+                  <img id="cupidPhoto" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80" alt="Cupid Candidate" />
+                  <div class="cupid-photo-shade"></div>
+                  
+                  <div class="cupid-floating-tags">
+                    <span class="cupid-match-score" id="cupidScore">✦ 88% MUTUAL VIBE</span>
+                    <span class="cupid-photo-counter" id="cupidPhotoCounter">📸 1 / 3</span>
+                  </div>
+
+                  <div class="cupid-hero-info">
+                    <h2 id="cupidNameAge">Anna, 21</h2>
+                    <p id="cupidMajor">CLSU · Industrial Engineering</p>
+                  </div>
+                </div>
+
+                <div class="cupid-card-body">
+                  <!-- Interactive Spark Quiz -->
+                  <div class="cupid-spark-quiz" id="cupidSparkQuiz">
+                    <span class="quiz-label">⚡ QUICK SPARK QUIZ: "Midnight study fuel?"</span>
+                    <div class="quiz-choices-row">
+                      <button type="button" class="spark-quiz-btn" data-choice="boba">🧋 Iced Boba</button>
+                      <button type="button" class="spark-quiz-btn" data-choice="latte">☕ Hot Spanish Latte</button>
+                    </div>
+                  </div>
+
+                  <!-- Playable Voice Vibe snippet -->
+                  <div class="cupid-voice-player" id="cupidVoicePlayer">
+                    <button class="voice-play-toggle" id="voicePlayBtn">▶</button>
+                    <div class="voice-waveform-animation">
+                      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                    </div>
+                    <small class="voice-text">🎙️ 5s Voice Vibe • "Catch me at Campus Brews!"</small>
+                  </div>
+
+                  <!-- Vibe tags -->
+                  <div class="cupid-vibe-tags" id="cupidVibes">
+                    <span class="v-tag">☕ Specialty Coffee</span>
+                    <span class="v-tag">🎨 Sketching</span>
+                    <span class="v-tag">🎧 Indie Rock</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cupid Controls -->
+            <div class="cupid-controls">
+              <button class="cupid-btn pass-btn" id="cupidPassBtn" aria-label="Pass">
+                <span>🌙</span>
+                <small>Pass</small>
+              </button>
+              <button class="cupid-btn super-btn" id="cupidSuperBtn" aria-label="Super Spark">
+                <span>⚡</span>
+                <small>Spark</small>
+              </button>
+              <button class="cupid-btn match-btn" id="cupidMatchBtn" aria-label="Crush / Interested">
+                <span>💘</span>
+                <small>Vibe</small>
+              </button>
+            </div>
+          </section>
+
+          <!-- ================= TAB 4: CHATS ================= -->
+          <section class="screen-view" id="tab-chats" aria-label="Campus Chats">
+            
+            <!-- List View -->
+            <div class="chats-list-view" id="chatsListView">
+              <div class="screen-header">
+                <p class="kicker">DIRECT MESSAGES & LOUNGES</p>
+                <h2>Chats ▣</h2>
+              </div>
+
+              <!-- Icebreaker Prompt Carousel -->
+              <div class="icebreaker-banner">
+                <div class="ice-badge">💡 DAILY ICEBREAKER</div>
+                <p class="ice-text">"Rank the top 3 study spots on campus from best to worst."</p>
+                <button class="use-icebreaker-btn" id="useIcebreakerTopBtn">Send to a match ✦</button>
+              </div>
+
+              <div class="chat-threads-list">
+                <!-- Thread 1: Anna -->
+                <div class="chat-thread-item unread" data-chat-user="Anna" data-chat-avatar="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=200&q=80">
+                  <div class="thread-avatar-wrap">
+                    <img src="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=200&q=80" alt="Anna" />
+                    <span class="online-indicator"></span>
+                  </div>
+                  <div class="thread-info">
+                    <div class="thread-name-row">
+                      <h4>Anna <span>✦ Match</span></h4>
+                      <small class="time">Just now</small>
+                    </div>
+                    <p class="last-message">Are you still at Campus Brews? ☕</p>
+                  </div>
+                  <span class="unread-dot"></span>
+                </div>
+
+                <!-- Thread 2: Gaming Hub -->
+                <div class="chat-thread-item" data-chat-user="Gaming & Esports Hub" data-chat-avatar="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=200&q=80">
+                  <div class="thread-avatar-wrap">
+                    <div class="group-avatar-icon">🎮</div>
+                    <span class="online-indicator"></span>
+                  </div>
+                  <div class="thread-info">
+                    <div class="thread-name-row">
+                      <h4>Gaming & Esports Hub</h4>
+                      <small class="time">14m ago</small>
+                    </div>
+                    <p class="last-message">Marcus: Lobby code is 4920, grab a controller!</p>
+                  </div>
+                </div>
+
+                <!-- Thread 3: Joshua -->
+                <div class="chat-thread-item" data-chat-user="Joshua" data-chat-avatar="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80">
+                  <div class="thread-avatar-wrap">
+                    <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80" alt="Joshua" />
+                  </div>
+                  <div class="thread-info">
+                    <div class="thread-name-row">
+                      <h4>Joshua</h4>
+                      <small class="time">2h ago</small>
+                    </div>
+                    <p class="last-message">That design critique was intense haha</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Single Chat Room View (Hidden by default, shown on click) -->
+            <div class="chat-room-view hidden" id="chatRoomView">
+              <div class="room-header">
+                <button class="back-to-chats-btn" id="backToChatsBtn" aria-label="Back to chat list">‹</button>
+                <div class="room-recipient">
+                  <img id="roomAvatar" src="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=200&q=80" alt="User" />
+                  <div>
+                    <h3 id="roomName">Anna</h3>
+                    <small id="roomStatus">Active now · 88% Match</small>
+                  </div>
+                </div>
+                <button class="room-call-btn" id="roomCallBtn" aria-label="Campus Vibe Call">📞</button>
+              </div>
+
+              <!-- Shared Vibe Prompt Pill -->
+              <div class="shared-vibe-bar">
+                <span>✨ You both love Specialty Coffee & Indie Music</span>
+              </div>
+
+              <!-- Messages List -->
+              <div class="chat-messages-container" id="chatMessagesContainer">
+                <div class="message-bubble incoming" data-msg-id="msg-1">
+                  <p>Heyyy Carlo! 👋 Saw you were down for coffee!</p>
+                  <span class="msg-time">6:30 PM</span>
+                  <span class="bubble-reaction-badge">❤️ 1</span>
+                </div>
+                <div class="message-bubble incoming" data-msg-id="msg-2">
+                  <p>Are you still at Campus Brews? Look at my sketching plate:</p>
+                  <div class="in-chat-photo-wrap">
+                    <img src="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=400&q=80" alt="Sketching plate" />
+                  </div>
+                  <span class="msg-time">6:40 PM</span>
+                </div>
+                <div class="message-bubble incoming voice-bubble" data-msg-id="msg-3">
+                  <button class="voice-bubble-play-btn">▶</button>
+                  <div class="voice-bars">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                  <span class="voice-duration">0:06</span>
+                  <span class="msg-time">6:42 PM</span>
+                </div>
+                <!-- Live Typing Indicator -->
+                <div class="chat-typing-indicator hidden" id="chatTypingBubble">
+                  <div class="typing-dots-anim">
+                    <span></span><span></span><span></span>
+                  </div>
+                  <small class="typing-label">Anna is typing...</small>
+                </div>
+              </div>
+
+              <!-- Quick Sticker Drawer (Hidden by default, toggled with ✨) -->
+              <div class="chat-sticker-drawer hidden" id="chatStickerDrawer">
+                <div class="sticker-drawer-header">
+                  <span>✨ CAMPUS STICKERS</span>
+                  <button type="button" id="closeStickerDrawerBtn">×</button>
+                </div>
+                <div class="sticker-grid" id="stickerGrid">
+                  <button type="button" class="sticker-btn" data-sticker="☕">☕ <small>Coffee</small></button>
+                  <button type="button" class="sticker-btn" data-sticker="🎮">🎮 <small>Game On</small></button>
+                  <button type="button" class="sticker-btn" data-sticker="💖">💖 <small>Spark</small></button>
+                  <button type="button" class="sticker-btn" data-sticker="📚">📚 <small>Finals SOS</small></button>
+                  <button type="button" class="sticker-btn" data-sticker="🍜">🍜 <small>Boba/Ramen</small></button>
+                  <button type="button" class="sticker-btn" data-sticker="⚡">⚡ <small>Hype</small></button>
+                </div>
+              </div>
+
+              <!-- Quick Icebreaker suggestions bar -->
+              <div class="quick-icebreaker-chips" id="quickIcebreakers">
+                <button class="ice-chip" data-text="Yes! Right by the window table ☕">"Yes, by the window! ☕"</button>
+                <button class="ice-chip" data-text="Heading there in 5 mins! Save me a seat 🙌">"Heading there in 5 mins! 🙌"</button>
+                <button class="ice-chip" data-text="What's your go-to drink here? 🧋">"What's your go-to drink? 🧋"</button>
+              </div>
+
+              <!-- Chat Input Bar -->
+              <div class="chat-input-bar">
+                <button class="chat-tool-btn" id="chatStickerBtn" aria-label="Send sticker">✨</button>
+                <input type="text" id="chatMessageInput" placeholder="Message Anna..." aria-label="Type a message" />
+                <button class="chat-send-btn" id="chatSendBtn" aria-label="Send message">↗</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ================= TAB 5: YOU (STUDENT PASSPORT & VISUAL DIARY) ================= -->
+          <section class="screen-view" id="tab-you" aria-label="Your Student Profile">
+            <div class="screen-header profile-header">
+              <div>
+                <p class="kicker">CAMPUS PASSPORT</p>
+                <h2>You ◉</h2>
+              </div>
+              <div class="profile-header-actions">
+                <button class="header-icon-btn settings-trigger-btn" id="openSettingsBtn" aria-label="Open settings">
+                  <span class="gear-icon">⚙️</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Student ID Card -->
+            <div class="student-passport-card">
+              <div class="passport-card-top">
+                <div class="passport-avatar-wrap">
+                  <img id="youProfileAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80" alt="Student Avatar" />
+                  <span class="passport-online-badge">🟢</span>
+                </div>
+                <div class="passport-details">
+                  <span class="student-verified-chip" id="youProfileUniChip">🎓 CLSU VERIFIED</span>
+                  <h3 id="youProfileName">Carlo Santos, 21</h3>
+                  <p class="student-program" id="youProfileProgram">B.S. Computer Science · Year 3</p>
+                  <div class="vibe-score-pill">
+                    <span id="youProfileVibeScore">⚡ 94% Campus Vibe Score</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Current Mood / Vibe status -->
+              <div class="status-mood-box">
+                <span class="mood-label">Current Campus Status:</span>
+                <button class="status-edit-btn" id="editStatusMoodBtn">
+                  <span class="status-emoji" id="currentMoodEmoji">☕</span>
+                  <strong id="currentMoodText">"Caffeine powered & studying"</strong>
+                  <small>Tap to change</small>
+                </button>
+              </div>
+
+              <!-- Interactive Campus Story Highlights -->
+              <div class="profile-stories-section">
+                <span class="stories-label">CAMPUS MEMORY HIGHLIGHTS</span>
+                <div class="profile-stories-row" id="profileStoriesRow">
+                  <div class="story-bubble-item" data-story="coffee">
+                    <div class="story-bubble-ring active">
+                      <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=150&q=80" alt="Coffee story" />
+                    </div>
+                    <small>☕ Coffee</small>
+                  </div>
+                  <div class="story-bubble-item" data-story="gaming">
+                    <div class="story-bubble-ring active">
+                      <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80" alt="Gaming story" />
+                    </div>
+                    <small>🎮 Gaming</small>
+                  </div>
+                  <div class="story-bubble-item" data-story="study">
+                    <div class="story-bubble-ring active">
+                      <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=150&q=80" alt="Study story" />
+                    </div>
+                    <small>📚 CS Lib</small>
+                  </div>
+                  <div class="story-bubble-item" data-story="food">
+                    <div class="story-bubble-ring active">
+                      <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=150&q=80" alt="Food story" />
+                    </div>
+                    <small>🍜 Foodies</small>
+                  </div>
+                  <div class="story-bubble-item" data-story="sunset">
+                    <div class="story-bubble-ring active">
+                      <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=150&q=80" alt="Lagoon story" />
+                    </div>
+                    <small>🌅 Lagoon</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Student Badges -->
+              <div class="badges-row">
+                <span class="badge-item">🦉 Night Owl</span>
+                <span class="badge-item">☕ Boba & Coffee</span>
+                <span class="badge-item">🎮 Switch Gamer</span>
+                <span class="badge-item">💻 Hackathoner</span>
+              </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="profile-stats-bar">
+              <div class="stat-col">
+                <strong>24</strong>
+                <small>Sparks</small>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-col">
+                <strong>5</strong>
+                <small>Circles</small>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-col" id="profilePostCountCol">
+                <strong id="profilePostCount">6</strong>
+                <small>My Drops</small>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat-col">
+                <strong>98%</strong>
+                <small>Friendly</small>
+              </div>
+            </div>
+
+            <!-- USER POSTS & DROPS ("Show what you post") -->
+            <section class="user-posts-section">
+              <div class="user-posts-header">
+                <div class="section-heading">
+                  <p class="kicker">MY CAMPUS ACTIVITY</p>
+                  <h3>Your Moments & Reels</h3>
+                </div>
+                <button class="new-post-chip-btn" id="profileNewDropBtn">
+                  <span>+</span> Share Drop
+                </button>
+              </div>
+
+              <!-- Filter Pills -->
+              <div class="user-posts-filter-bar" id="userPostsFilter">
+                <button class="post-filter-pill active" data-filter="all">✦ All Drops (<span id="userDropsCount">6</span>)</button>
+                <button class="post-filter-pill" data-filter="photo">📸 Photos (4)</button>
+                <button class="post-filter-pill" data-filter="reel">🎬 Reels (2)</button>
+                <button class="post-filter-pill" data-filter="saved">♡ Saved (4)</button>
+              </div>
+
+              <!-- User Posts Grid -->
+              <div class="user-posts-grid" id="userPostsGrid">
+                <!-- Dynamically populated and maintained in app.js -->
+              </div>
+            </section>
+          </section>
+
+        </div>
+
+        <!-- FLOATING QUICK SHARE BUTTON -->
+        <button class="quick-share-fab" id="quickShareFab" aria-label="Share a campus moment">
+          <span class="fab-plus">+</span>
+          <b class="fab-label">Share drop</b>
+        </button>
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <nav class="bottom-nav" aria-label="Main Navigation">
+          <button class="nav-item active" data-target="tab-vibe">
+            <span class="nav-icon">✦</span>
+            <b>Vibe</b>
+          </button>
+          <button class="nav-item" data-target="tab-reels">
+            <span class="nav-icon">🎬</span>
+            <b>Reels</b>
+            <span class="nav-sparkle-dot"></span>
+          </button>
+          <button class="nav-item" data-target="tab-circles">
+            <span class="nav-icon">◌</span>
+            <b>Circles</b>
+          </button>
+          <button class="nav-item" data-target="tab-cupid">
+            <span class="nav-icon">♡</span>
+            <b>Cupid</b>
+          </button>
+          <button class="nav-item" data-target="tab-chats">
+            <span class="nav-icon">▣</span>
+            <b>Chats</b>
+            <span class="nav-unread-badge">1</span>
+          </button>
+          <button class="nav-item" data-target="tab-you">
+            <span class="nav-icon">◉</span>
+            <b>You</b>
+          </button>
+        </nav>
+        </div><!-- close mainAppViewport -->
+      </section>
+
+      <!-- DESKTOP SHOWCASE ASIDE -->
+      <aside class="desktop-showcase">
+        <div class="brand-orbit-card">
+          <div class="brand-orbit">
+            <span>☕</span>
+            <span>✦</span>
+            <span>♡</span>
+            <span>🎮</span>
+            <div class="brand-center-logo">
+              <img src="Logo.jpeg" alt="UniVCupid" class="orbit-logo-img" />
+            </div>
+          </div>
+          <span class="orbit-pill">LIVE ON CAMPUS</span>
+        </div>
+
+        <div class="showcase-content">
+          <p class="kicker">UNIVCUPID • CAMPUS CONNECT</p>
+          <h2>Find your circle.<br />Meet your person.</h2>
+          <p class="showcase-desc">
+            A playful, living campus social space designed for everything that happens after class. Real-time vibes, spontaneous drop-ins, student circles, and authentic sparks.
+          </p>
+
+          <div class="feature-bullets">
+            <div class="bullet-item">
+              <span class="b-icon">☕</span>
+              <div>
+                <strong>Spontaneous Vibes</strong>
+                <p>See what students are doing right now and drop in.</p>
+              </div>
+            </div>
+            <div class="bullet-item">
+              <span class="b-icon">💘</span>
+              <div>
+                <strong>Student-Only Cupid</strong>
+                <p>Match with verified classmates by major, year, and shared humor.</p>
+              </div>
+            </div>
+            <div class="bullet-item">
+              <span class="b-icon">🎮</span>
+              <div>
+                <strong>Campus Circles</strong>
+                <p>Micro-communities for gaming, study sprints, and boba runs.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="showcase-footer-note">
+            <span>🎓 Central Luzon State University · Beta v1.2</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- ================= MODAL: QUICK SHARE SHEET ================= -->
+    <div class="modal-backdrop" id="sheetBackdrop"></div>
+    <section class="share-sheet" id="shareSheet" aria-hidden="true" role="dialog" aria-label="Share a moment">
+      <div class="sheet-drag-handle"></div>
+      <button class="close-sheet-btn" id="closeSheetBtn" aria-label="Close modal">×</button>
+      
+      <div class="sheet-header">
+        <p class="kicker">MAKE A CAMPUS DROP</p>
+        <h2>What are you up to?</h2>
+      </div>
+
+      <!-- Post Type Switcher: Moment vs Reel -->
+      <div class="share-type-tabs" id="shareTypeTabs">
+        <button class="type-tab-btn active" data-type="moment">📸 Campus Moment</button>
+        <button class="type-tab-btn" data-type="reel">🎬 Campus Reel</button>
+      </div>
+
+      <!-- Quick Preset Photos/Videos -->
+      <div class="photo-picker-section">
+        <label class="section-sub-label" id="mediaPickerLabel">Choose a media vibe:</label>
+        <div class="preset-photos-grid" id="presetPhotosGrid">
+          <button class="preset-photo-btn selected" data-img="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80" data-label="Coffee & Books" data-video="https://assets.mixkit.co/videos/preview/mixkit-group-of-friends-studying-in-a-library-4841-large.mp4">
+            <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=150&q=80" alt="Coffee" />
+            <span>☕ Coffee</span>
+          </button>
+          <button class="preset-photo-btn" data-img="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80" data-label="Study Group" data-video="https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-student-taking-notes-in-a-notebook-42994-large.mp4">
+            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=150&q=80" alt="Study" />
+            <span>📚 Study</span>
+          </button>
+          <button class="preset-photo-btn" data-img="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" data-label="Gaming Dorm" data-video="https://assets.mixkit.co/videos/preview/mixkit-hands-holding-a-game-controller-playing-a-video-game-41611-large.mp4">
+            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80" alt="Gaming" />
+            <span>🎮 Gaming</span>
+          </button>
+          <button class="preset-photo-btn" data-img="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80" data-label="Food Run" data-video="https://assets.mixkit.co/videos/preview/mixkit-pouring-milk-in-a-glass-with-coffee-and-ice-42407-large.mp4">
+            <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=150&q=80" alt="Food" />
+            <span>🍜 Food</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Activity Emoji Picker -->
+      <div class="activity-picker-section">
+        <label class="section-sub-label">Activity:</label>
+        <div class="activity-grid" id="shareActivityGrid">
+          <button class="act-choice selected" data-icon="☕" data-name="Coffee break">☕ <span>Coffee</span></button>
+          <button class="act-choice" data-icon="✎" data-name="Study grind">✎ <span>Study</span></button>
+          <button class="act-choice" data-icon="🎮" data-name="Gaming lounge">🎮 <span>Gaming</span></button>
+          <button class="act-choice" data-icon="🍜" data-name="Food trip">🍜 <span>Food</span></button>
+          <button class="act-choice" data-icon="🏋" data-name="Gym session">🏋 <span>Gym</span></button>
+          <button class="act-choice" data-icon="🎉" data-name="Campus hangout">🎉 <span>Party</span></button>
+        </div>
+      </div>
+
+      <!-- Location on Campus -->
+      <div class="location-picker-section">
+        <label class="section-sub-label" for="shareLocationInput">Campus Location:</label>
+        <input type="text" id="shareLocationInput" class="custom-input" placeholder="e.g. Main Library 2nd Floor, Science Quad" value="Main Library Floor 2" />
+      </div>
+
+      <!-- Caption -->
+      <div class="caption-section">
+        <label class="section-sub-label" for="shareCaptionInput">Caption:</label>
+        <input type="text" id="shareCaptionInput" class="custom-input" placeholder="Who's down to join? Grab a chair!" />
+      </div>
+
+      <button class="publish-moment-btn" id="publishMomentBtn">
+        Share to Campus Vibe ✦
+      </button>
+    </section>
+
+    <!-- ================= MODAL: SETTINGS & PREFERENCES (HIDDEN IN BUTTON) ================= -->
+    <div class="modal-backdrop" id="settingsBackdrop"></div>
+    <section class="settings-modal-sheet" id="settingsModal" aria-hidden="true" role="dialog" aria-label="Settings">
+      <div class="sheet-drag-handle"></div>
+      <button class="close-sheet-btn" id="closeSettingsBtn" aria-label="Close settings">×</button>
+
+      <div class="settings-modal-header">
+        <div class="settings-header-icon">⚙️</div>
+        <div>
+          <h2>Preferences & Safety</h2>
+          <p class="settings-subtitle">Manage privacy, campus pulse & micro-vibes</p>
+        </div>
+      </div>
+
+      <div class="settings-modal-body">
+        <!-- Student Verification Info Card -->
+        <div class="settings-passport-chip">
+          <div class="chip-avatar" id="settingsProfileAvatar">🎓</div>
+          <div class="chip-info">
+            <strong id="settingsProfileName">Carlo Santos</strong>
+            <small id="settingsProfileUni">Student ID #2026-4920 • CLSU Verified ✓</small>
+          </div>
+          <span class="chip-badge">Active</span>
+        </div>
+
+        <!-- Privacy & Social Toggles -->
+        <div class="settings-group-card">
+          <span class="group-title">CAMPUS PRIVACY & DISCOVERY</span>
+
+          <label class="setting-toggle-row">
+            <div class="setting-info">
+              <strong>Show Live Campus Pulse</strong>
+              <small>Let nearby students see your active location & mood</small>
+            </div>
+            <input type="checkbox" checked class="toggle-switch" />
+          </label>
+
+          <label class="setting-toggle-row">
+            <div class="setting-info">
+              <strong>Appear in Cupid Matchmaker</strong>
+              <small>Enable matching for friends, dating & study buddies</small>
+            </div>
+            <input type="checkbox" checked class="toggle-switch" />
+          </label>
+
+          <label class="setting-toggle-row">
+            <div class="setting-info">
+              <strong>Quiet Study Ghost Mode</strong>
+              <small>Pause spontaneous hangout requests while in class</small>
+            </div>
+            <input type="checkbox" class="toggle-switch" />
+          </label>
+        </div>
+
+        <!-- Micro-Vibes & Playful UX Settings -->
+        <div class="settings-group-card">
+          <span class="group-title">EXPERIENCE & MICRO-ANIMATIONS</span>
+
+          <label class="setting-toggle-row">
+            <div class="setting-info">
+              <strong>Playful Haptic & Sound Micro-vibes</strong>
+              <small>Delightful tactile spring bounce & emoji particle bursts</small>
+            </div>
+            <input type="checkbox" checked class="toggle-switch" id="settingMicroVibes" />
+          </label>
+
+          <label class="setting-toggle-row">
+            <div class="setting-info">
+              <strong>Autoplay Campus Reels</strong>
+              <small>Smooth looping video playback on campus feed</small>
+            </div>
+            <input type="checkbox" checked class="toggle-switch" id="settingAutoplayReels" />
+          </label>
+        </div>
+
+        <!-- Campus Safety & Action Buttons -->
+        <button class="safety-btn modal-safety-btn" id="modalSafetyBtn">
+          <span>🛡️</span> Campus Safety & Emergency Center
+        </button>
+
+        <button class="sign-out-btn" id="signOutBtn">
+          <span>🚪</span> Sign Out / Switch Student
+        </button>
+
+        <button class="reset-data-btn" id="resetDemoDataBtn">
+          <span>🔄</span> Reset Demo Feed & Posts
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= MODAL: REELS COMMENTS DRAWER ================= -->
+    <div class="modal-backdrop" id="reelsCommentsBackdrop"></div>
+    <section class="comments-sheet" id="reelsCommentsSheet" aria-hidden="true" role="dialog" aria-label="Reel Comments">
+      <div class="sheet-drag-handle"></div>
+      <button class="close-sheet-btn" id="closeReelsCommentsBtn" aria-label="Close comments">×</button>
+
+      <div class="comments-header">
+        <h3>Campus Comments 💬</h3>
+        <span class="comments-count-pill" id="commentsCountPill">3 comments</span>
+      </div>
+
+      <div class="comments-list" id="reelsCommentsList">
+        <div class="comment-item">
+          <img src="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=100&q=80" alt="Anna" />
+          <div class="comment-content">
+            <div class="comment-author-row">
+              <strong>Anna</strong>
+              <small>15m ago</small>
+            </div>
+            <p>LMAOO this is so painfully accurate for Chem 101 😭😭</p>
+          </div>
+          <button class="comment-heart-btn">♡ <b>14</b></button>
+        </div>
+
+        <div class="comment-item">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" alt="Joshua" />
+          <div class="comment-content">
+            <div class="comment-author-row">
+              <strong>Joshua</strong>
+              <small>8m ago</small>
+            </div>
+            <p>Heading to the 3rd floor library right now if anyone wants to study together! ☕</p>
+          </div>
+          <button class="comment-heart-btn">♡ <b>8</b></button>
+        </div>
+
+        <div class="comment-item">
+          <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=100&q=80" alt="Marcus" />
+          <div class="comment-content">
+            <div class="comment-author-row">
+              <strong>Marcus</strong>
+              <small>2m ago</small>
+            </div>
+            <p>Iced matcha is the only thing keeping our GPA alive fr 😂</p>
+          </div>
+          <button class="comment-heart-btn">♡ <b>5</b></button>
+        </div>
+      </div>
+
+      <!-- Add Comment Bar -->
+      <div class="comment-input-bar">
+        <input type="text" id="newCommentInput" placeholder="Add a campus comment..." aria-label="Type comment" />
+        <button class="comment-send-btn" id="sendCommentBtn" aria-label="Send comment">↗</button>
+      </div>
+    </section>
+
+    <!-- ================= MODAL: POST VIEWER / DETAIL MODAL ================= -->
+    <div class="modal-backdrop" id="postViewBackdrop"></div>
+    <section class="post-detail-modal" id="postViewModal" aria-hidden="true" role="dialog" aria-label="Post Details">
+      <div class="sheet-drag-handle"></div>
+      <button class="close-sheet-btn" id="closePostViewBtn" aria-label="Close post view">×</button>
+      
+      <div class="post-modal-content" id="postModalContent">
+        <!-- Dynamically rendered -->
+      </div>
+    </section>
+
+    <!-- ================= MODAL: CUPID MATCH CELEBRATION ================= -->
+    <div class="cupid-match-modal" id="cupidMatchModal">
+      <div class="match-modal-card">
+        <div class="match-spark-icon">💘</div>
+        <p class="kicker">IT'S A MUTUAL VIBE!</p>
+        <h2>You and <span id="matchedPersonName">Anna</span> sparked!</h2>
+        <p class="match-sub-desc">You both love specialty coffee and studying with lo-fi music.</p>
+        
+        <div class="matched-avatars-row">
+          <div class="avatar-pair left">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Carlo" />
+            <span>Carlo</span>
+          </div>
+          <span class="match-heart-center">♥</span>
+          <div class="avatar-pair right">
+            <img id="matchedPersonAvatar" src="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=200&q=80" alt="Match" />
+            <span id="matchedPersonLabel">Anna</span>
+          </div>
+        </div>
+
+        <div class="match-actions">
+          <button class="match-start-chat-btn" id="matchStartChatBtn">
+            Send Icebreaker: "Iced latte on me? ☕"
+          </button>
+          <button class="match-keep-browsing-btn" id="matchKeepBrowsingBtn">
+            Keep exploring Cupid
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: CAMPUS STORY VIEWER ================= -->
+    <div class="modal-backdrop" id="storyViewerBackdrop"></div>
+    <div class="story-viewer-modal" id="storyViewerModal">
+      <div class="story-progress-bar-container">
+        <div class="story-progress-bar" id="storyProgressBar"></div>
+      </div>
+      <div class="story-header-bar">
+        <div class="story-author-info">
+          <img id="storyAuthorAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="User" />
+          <div>
+            <strong id="storyAuthorName">Carlo Santos</strong>
+            <small id="storyCategoryName">☕ Coffee Crawls</small>
+          </div>
+        </div>
+        <button class="close-story-btn" id="closeStoryBtn">×</button>
+      </div>
+      <div class="story-image-viewport" id="storyImageViewport">
+        <img id="storyMainImage" src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=85" alt="Story photo" />
+        <div class="story-tap-left" id="storyTapLeft" title="Previous story"></div>
+        <div class="story-tap-right" id="storyTapRight" title="Next story"></div>
+        <div class="story-caption-overlay">
+          <span class="story-badge-pill" id="storyBadgePill">📍 Campus Brews</span>
+          <p id="storyCaptionText">"Best pour-over brew on campus after morning calculus!"</p>
+        </div>
+      </div>
+      <div class="story-footer-reactions">
+        <button class="story-react-btn" data-emoji="🔥">🔥</button>
+        <button class="story-react-btn" data-emoji="💖">💖</button>
+        <button class="story-react-btn" data-emoji="☕">☕</button>
+        <button class="story-react-btn" data-emoji="🙌">🙌</button>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: CIRCLE COMMUNITY CHAT LOUNGE ================= -->
+    <div class="modal-backdrop" id="circleChatBackdrop"></div>
+    <section class="circle-chat-modal" id="circleChatModal" aria-hidden="true" role="dialog" aria-label="Circle Lounge">
+      <div class="sheet-drag-handle"></div>
+      <button class="close-sheet-btn" id="closeCircleChatBtn" aria-label="Close circle chat">×</button>
+
+      <div class="circle-chat-header">
+        <div class="circle-chat-icon" id="circleChatIcon">🎮</div>
+        <div>
+          <h3 id="circleChatTitle">Gaming & Esports Hub</h3>
+          <small id="circleChatMembers">42 students live in lounge</small>
+        </div>
+      </div>
+
+      <div class="circle-chat-messages" id="circleChatMessages">
+        <div class="circle-msg-bubble">
+          <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=100&q=80" alt="Marcus" />
+          <div class="circle-msg-content">
+            <strong>Marcus <span>• CS '26</span></strong>
+            <p>Lobby is up in Dorm Hall B! Mario Kart compe starts in 10 mins 🎮</p>
+          </div>
+        </div>
+        <div class="circle-msg-bubble">
+          <img src="https://images.unsplash.com/photo-1511081692775-05d0f180a065?auto=format&fit=crop&w=100&q=80" alt="Anna" />
+          <div class="circle-msg-content">
+            <strong>Anna <span>• IE '26</span></strong>
+            <p>On my way! Bringing snacks from West Gate 🍿</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="comment-input-bar">
+        <input type="text" id="circleMessageInput" placeholder="Message circle lounge..." aria-label="Circle message" />
+        <button class="comment-send-btn" id="sendCircleMessageBtn" aria-label="Send message">↗</button>
+      </div>
+    </section>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast-popup" id="toastPopup" role="status">
+      <span class="toast-icon">✨</span>
+      <span class="toast-text" id="toastText">Welcome to UniVCupid</span>
+    </div>
+
+    <!-- FLOATING PARTICLE CONTAINER -->
+    <div class="particles-container" id="particlesContainer"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

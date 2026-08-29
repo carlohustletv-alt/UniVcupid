@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UnivCupid | Super Admin Command & Moderation Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Background ambient blobs -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <main class="shell">
+      <!-- ================= LOGIN VIEW ================= -->
+      <section class="login-card" id="loginView">
+        <div class="brand-row-center">
+          <div class="brand-mark">💘</div>
+          <div>
+            <h1>UnivCupid</h1>
+            <span class="badge-tag">SUPER ADMIN COMMAND</span>
+          </div>
+        </div>
+        <p class="login-desc">
+          Official administrative portal for campus operations, live DM inspection, circle lounges, Cupid matchmaking engine, and safety enforcement.
+        </p>
+
+        <!-- Fast Login Pre-fill Chips -->
+        <div class="quick-admin-chips">
+          <span class="chips-label">Quick Sign-In:</span>
+          <div class="chips-row">
+            <button type="button" class="quick-fill-btn" data-email="admin@univcupid.test" data-pass="UnivCupidDemo!2026">
+              👑 Super Admin
+            </button>
+            <button type="button" class="quick-fill-btn" data-email="carlo.demo@univcupid.test" data-pass="UnivCupidDemo!2026">
+              🎓 Carlo (Student)
+            </button>
+          </div>
+        </div>
+
+        <form id="loginForm" class="form-stack">
+          <label>
+            <span>Admin Email</span>
+            <input id="emailInput" type="email" placeholder="admin@univcupid.test" autocomplete="email" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="passwordInput" type="password" placeholder="••••••••••••" autocomplete="current-password" required />
+          </label>
+          <button type="submit" class="primary-btn" id="loginSubmitBtn">
+            Enter Management Console ✦
+          </button>
+        </form>
+
+        <div class="security-note">
+          <span class="lock-icon">🔒</span>
+          <p id="loginNotice">Direct Supabase Live connection active across all campus databases.</p>
+        </div>
+      </section>
+
+      <!-- ================= DASHBOARD VIEW ================= -->
+      <section class="dashboard hidden" id="dashboardView">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+          <div class="brand-row">
+            <div class="brand-mark small">💘</div>
+            <div>
+              <strong>UnivCupid</strong>
+              <small class="admin-badge">SUPER ADMIN</small>
+            </div>
+          </div>
+
+          <nav class="nav-menu">
+            <button class="nav active" data-tab="overview">
+              <span class="nav-icon">📊</span>
+              <span>Overview</span>
+            </button>
+            <button class="nav" data-tab="profiles">
+              <span class="nav-icon">👥</span>
+              <span>Students & Users</span>
+              <span class="nav-count-badge" id="navUserCount">0</span>
+            </button>
+            <button class="nav" data-tab="messages">
+              <span class="nav-icon">💬</span>
+              <span>DMs & Messages</span>
+              <span class="nav-count-badge" id="navMsgCount">0</span>
+            </button>
+            <button class="nav" data-tab="circles">
+              <span class="nav-icon">◌</span>
+              <span>Circle Lounges</span>
+            </button>
+            <button class="nav" data-tab="cupid">
+              <span class="nav-icon">♡</span>
+              <span>Cupid Matchmaker</span>
+            </button>
+            <button class="nav" data-tab="vibes">
+              <span class="nav-icon">✨</span>
+              <span>Vibes Feed</span>
+            </button>
+            <button class="nav" data-tab="social">
+              <span class="nav-icon">🤝</span>
+              <span>Social & Blocks</span>
+            </button>
+            <button class="nav" data-tab="reports">
+              <span class="nav-icon">🛡️</span>
+              <span>Reports & Safety</span>
+              <span class="nav-alert-badge hidden" id="navOpenReportsBadge">0</span>
+            </button>
+            <button class="nav" data-tab="announcements">
+              <span class="nav-icon">📢</span>
+              <span>Broadcast Alerts</span>
+            </button>
+            <button class="nav" data-tab="audit">
+              <span class="nav-icon">📜</span>
+              <span>Audit Logs</span>
+            </button>
+            <button class="nav" data-tab="security">
+              <span class="nav-icon">🔐</span>
+              <span>Admin Team</span>
+            </button>
+          </nav>
+
+          <!-- Admin Profile Widget -->
+          <div class="admin-user-pill">
+            <div class="admin-avatar">👑</div>
+            <div class="admin-info">
+              <strong id="activeAdminEmail">admin@univcupid.test</strong>
+              <span class="admin-role-tag" id="activeAdminRole">Super Admin</span>
+            </div>
+            <button class="signout-btn" id="signOutBtn" title="Sign out">🚪</button>
+          </div>
+        </aside>
+
+        <!-- Main Dashboard Content -->
+        <section class="content">
+          <header class="topbar">
+            <div>
+              <div class="breadcrumbs">
+                <span class="live-pulse"></span>
+                <span>SUPABASE LIVE</span>
+                <span class="sep">•</span>
+                <span id="breadcrumbSection">Management</span>
+              </div>
+              <h1 id="pageTitle">Overview</h1>
+              <p id="pageSubtitle">Live operational snapshot and platform vitals</p>
+            </div>
+
+            <div class="topbar-actions">
+              <button class="export-btn" id="exportDataBtn" title="Export current dataset to CSV">
+                <span>📥</span> Export CSV
+              </button>
+              <button class="refresh-btn" id="refreshBtn" title="Refresh live data">
+                <span>🔄</span> Refresh
+              </button>
+            </div>
+          </header>
+
+          <!-- TAB 1: OVERVIEW -->
+          <section class="panel" id="overviewPanel">
+            <!-- Metric Cards Grid -->
+            <div class="metrics-grid" id="metricsGrid">
+              <!-- Dynamically Populated -->
+            </div>
+
+            <!-- Quick Action Hub -->
+            <div class="overview-section">
+              <div class="section-title-row">
+                <h3>⚡ Super Admin Quick Actions</h3>
+                <span class="subtle">Instant command controls</span>
+              </div>
+              <div class="quick-actions-row">
+                <button class="action-card-btn" id="quickInspectMessagesBtn">
+                  <span class="icon">💬</span>
+                  <div>
+                    <strong>Check Student DMs</strong>
+                    <small>Inspect active chat conversations & threads</small>
+                  </div>
+                </button>
+                <button class="action-card-btn" id="quickForceMatchBtn">
+                  <span class="icon">⚡</span>
+                  <div>
+                    <strong>Force Cupid Match</strong>
+                    <small>Pair two students and initiate match chat</small>
+                  </div>
+                </button>
+                <button class="action-card-btn" id="quickNewBroadcastBtn">
+                  <span class="icon">📢</span>
+                  <div>
+                    <strong>Post Broadcast Alert</strong>
+                    <small>Push banner notice to student apps</small>
+                  </div>
+                </button>
+                <button class="action-card-btn" id="quickNewCircleBtn">
+                  <span class="icon">✨</span>
+                  <div>
+                    <strong>Create Official Circle</strong>
+                    <small>Add student hub with campus filter</small>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Campus Breakdown & Recent Moderation Stream -->
+            <div class="overview-dual-grid">
+              <div class="overview-card">
+                <div class="section-title-row">
+                  <h3>🎓 Live Campus Student Distribution</h3>
+                </div>
+                <div class="campus-bars-list" id="campusDistributionList">
+                  <!-- Dynamically computed from profiles -->
+                </div>
+              </div>
+
+              <div class="overview-card">
+                <div class="section-title-row">
+                  <h3>📜 Recent Operator Actions</h3>
+                  <button class="text-btn" id="seeAllAuditBtn">View all ↗</button>
+                </div>
+                <div class="mini-stream-list" id="overviewAuditStream">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 2: PROFILES / USERS -->
+          <section class="panel hidden" id="profilesPanel">
+            <div class="toolbar">
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input id="profileSearch" placeholder="Search by name, campus, major, or UUID..." />
+              </div>
+              <select id="profileCampusFilter" class="toolbar-select">
+                <option value="all">🎓 All Campuses</option>
+                <option value="CLSU">CLSU</option>
+                <option value="UP Diliman">UP Diliman</option>
+                <option value="Ateneo">Ateneo</option>
+                <option value="DLSU">DLSU</option>
+                <option value="UST">UST</option>
+                <option value="PUP">PUP</option>
+                <option value="Mapúa">Mapúa</option>
+              </select>
+              <button class="primary-btn" data-action="profiles-search">Filter</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Student / User</th>
+                    <th>Campus & Major</th>
+                    <th>Age</th>
+                    <th>Vibes</th>
+                    <th>Circles</th>
+                    <th>Reports</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="profilesRows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- TAB 3: LIVE DMS & MESSAGES INSPECTOR -->
+          <section class="panel hidden" id="messagesPanel">
+            <div class="messages-split-layout">
+              <!-- Left: Conversation Threads List -->
+              <div class="threads-pane">
+                <div class="threads-header">
+                  <h3>💬 Student Conversations</h3>
+                  <span class="subtle" id="threadsCountLabel">0 active threads</span>
+                </div>
+                <div class="search-wrap" style="margin: 10px 0;">
+                  <span class="search-icon">🔍</span>
+                  <input id="dmSearchInput" placeholder="Search conversation participants..." />
+                </div>
+                <div class="threads-list" id="conversationsList">
+                  <!-- Dynamically Populated -->
+                </div>
+              </div>
+
+              <!-- Right: Live Chat Transcript Inspector -->
+              <div class="transcript-pane">
+                <div class="transcript-header" id="transcriptHeader">
+                  <div>
+                    <h3 id="transcriptTitle">Select a Conversation</h3>
+                    <small class="subtle" id="transcriptSubtitle">Click a chat thread on the left to inspect transcripts</small>
+                  </div>
+                  <div class="transcript-actions hidden" id="transcriptActions">
+                    <button class="sm-btn danger" id="purgeConversationBtn">Purge Chat 🗑️</button>
+                  </div>
+                </div>
+
+                <div class="transcript-messages-body" id="transcriptMessagesBody">
+                  <div class="transcript-placeholder">
+                    <span>💌</span>
+                    <p>Select any active conversation to view real-time chat history, timestamps, and message contents.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 4: CIRCLE LOUNGES & POSTS -->
+          <section class="panel hidden" id="circlesPanel">
+            <div class="toolbar">
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input id="circleSearch" placeholder="Search Circles by title, description, campus..." />
+              </div>
+              <button class="primary-btn" data-action="circles-search">Search</button>
+              <button class="create-circle-btn" id="openCreateCircleModalBtn">
+                <span>+</span> New Circle
+              </button>
+            </div>
+
+            <!-- Circles Table -->
+            <div class="table-wrap" style="margin-bottom: 24px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Circle Hub</th>
+                    <th>Campus</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="circlesRows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Circle Inside Lounges Explorer -->
+            <div class="overview-card">
+              <div class="section-title-row">
+                <h3>🔍 Circle Lounge Deep Inspector</h3>
+                <span class="subtle">Select a circle to view active lounge discussion & post notices</span>
+              </div>
+              <div class="circle-lounge-selector-row">
+                <label>Active Circle Lounge:</label>
+                <select id="circleLoungeSelect" class="toolbar-select">
+                  <option value="">Select Circle...</option>
+                </select>
+                <button class="primary-btn" id="postCircleModNoticeBtn">📢 Post Admin Notice in Lounge</button>
+              </div>
+              <div class="circle-posts-stream" id="circleLoungePostsBody" style="margin-top: 14px;">
+                <p class="subtle" style="text-align: center; padding: 20px;">Choose a circle from the dropdown above to inspect its real-time messages.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 5: CUPID MATCHMAKING STUDIO -->
+          <section class="panel hidden" id="cupidPanel">
+            <!-- Force Matchmaker Box -->
+            <div class="cupid-force-match-card">
+              <div class="section-title-row">
+                <div>
+                  <h3>⚡ Force Matchmaker Pairing Engine</h3>
+                  <small class="subtle">Pair any two students into a verified match and automatically create their match chat conversation.</small>
+                </div>
+                <span class="badge-tag" style="background: var(--coral-light); color: var(--coral);">SUPER ADMIN ONLY</span>
+              </div>
+
+              <form id="forceMatchForm" class="force-match-form">
+                <div class="form-row-2col">
+                  <label>
+                    <span>Student A</span>
+                    <select id="forceMatchStudentA" class="toolbar-select" required>
+                      <option value="">Choose Student A...</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Student B</span>
+                    <select id="forceMatchStudentB" class="toolbar-select" required>
+                      <option value="">Choose Student B...</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="form-row-2col" style="align-items: flex-end;">
+                  <label>
+                    <span>Initial Compatibility Vibe Score (%)</span>
+                    <input type="number" id="forceMatchScore" min="50" max="99" value="94" required />
+                  </label>
+                  <button type="submit" class="primary-btn" style="background: linear-gradient(135deg, var(--coral), #ff3b68);">
+                    ⚡ Create Mutual Match & Chat
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Algorithm Tuning & Active Matches Grid -->
+            <div class="overview-dual-grid" style="margin-top: 20px;">
+              <!-- Left: Live Matches & Likes List -->
+              <div class="overview-card">
+                <div class="section-title-row">
+                  <h3>💘 Active Mutual Matches</h3>
+                  <span class="subtle" id="matchesCountBadge">0 matches</span>
+                </div>
+                <div class="table-wrap" style="max-height: 380px; overflow-y: auto;">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>User A</th>
+                        <th>User B</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="cupidMatchesRows">
+                      <!-- Dynamically populated -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Right: Matchmaking Algorithm Parameters -->
+              <div class="overview-card">
+                <div class="section-title-row">
+                  <h3>⚙️ Cupid Algorithm Tuning</h3>
+                </div>
+                <form id="cupidAlgoForm" class="form-stack">
+                  <div class="algo-slider-item">
+                    <div class="algo-labels">
+                      <span>Compatibility Baseline</span>
+                      <strong id="labelCommonVibe">65%</strong>
+                    </div>
+                    <input type="range" id="algoCommonVibe" min="50" max="90" value="65" />
+                  </div>
+
+                  <div class="algo-slider-item">
+                    <div class="algo-labels">
+                      <span>Same-Campus Weight Boost</span>
+                      <strong id="labelCampusBoost">+18%</strong>
+                    </div>
+                    <input type="range" id="algoCampusBoost" min="5" max="30" value="18" />
+                  </div>
+
+                  <div class="algo-slider-item">
+                    <div class="algo-labels">
+                      <span>Shared Activity Weight Boost</span>
+                      <strong id="labelActivityBoost">+12%</strong>
+                    </div>
+                    <input type="range" id="algoActivityBoost" min="5" max="25" value="12" />
+                  </div>
+
+                  <div class="setting-toggle-row">
+                    <span>Allow Cross-Campus Cupid Discovery</span>
+                    <input type="checkbox" id="algoCrossCampus" checked />
+                  </div>
+
+                  <button type="submit" class="primary-btn">Save Algorithm Parameters ✦</button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 6: VIBES -->
+          <section class="panel hidden" id="vibesPanel">
+            <div class="toolbar">
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input id="vibeSearch" placeholder="Search Vibes by activity, caption, or author..." />
+              </div>
+              <select id="vibeActivityFilter" class="toolbar-select">
+                <option value="all">✨ All Activities</option>
+                <option value="Coffee break">☕ Coffee</option>
+                <option value="Study grind">📚 Study</option>
+                <option value="Gaming lounge">🎮 Gaming</option>
+                <option value="Food trip">🍜 Food</option>
+                <option value="Dating">♡ Dating</option>
+                <option value="Gym session">🏋 Gym</option>
+              </select>
+              <select id="vibeVisibilityFilter" class="toolbar-select">
+                <option value="all">🌐 All Visibility</option>
+                <option value="public">Public</option>
+                <option value="vibesmate">VibesMates Only</option>
+              </select>
+              <button class="primary-btn" data-action="vibes-search">Filter</button>
+            </div>
+
+            <div class="cards-grid" id="vibesRows">
+              <!-- Dynamically Populated -->
+            </div>
+          </section>
+
+          <!-- TAB 7: SOCIAL & BLOCKS GRAPH -->
+          <section class="panel hidden" id="socialPanel">
+            <div class="overview-dual-grid">
+              <!-- Left: VibesMates Network -->
+              <div class="overview-card">
+                <div class="section-title-row">
+                  <h3>🤝 VibesMates Connections</h3>
+                  <span class="subtle" id="vibesmatesCountBadge">0 pairs</span>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>User 1</th>
+                        <th>User 2</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="vibesmatesRows">
+                      <!-- Dynamically populated -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Right: User Blocks & Safety Relations -->
+              <div class="overview-card">
+                <div class="section-title-row">
+                  <h3>🚫 Active Student Blocks</h3>
+                  <span class="subtle">Harassment prevention tracker</span>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Blocker</th>
+                        <th>Blocked Student</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="blocksRows">
+                      <!-- Dynamically populated -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 8: REPORTS & SAFETY -->
+          <section class="panel hidden" id="reportsPanel">
+            <div class="toolbar">
+              <div class="filter-group">
+                <label>Status:</label>
+                <select id="reportStatus" class="toolbar-select">
+                  <option value="open">⚠️ Open</option>
+                  <option value="reviewing">🔍 Reviewing</option>
+                  <option value="resolved">✅ Resolved</option>
+                  <option value="dismissed">⚪ Dismissed</option>
+                  <option value="all">All Reports</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Reason:</label>
+                <select id="reportReasonFilter" class="toolbar-select">
+                  <option value="all">All Reasons</option>
+                  <option value="Inappropriate Content">Inappropriate Content</option>
+                  <option value="Harassment">Harassment</option>
+                  <option value="Spam">Spam / Bot</option>
+                  <option value="Impersonation">Impersonation</option>
+                  <option value="Safety">Campus Safety Concern</option>
+                </select>
+              </div>
+              <button class="primary-btn" data-action="reports-search">Apply Filter</button>
+            </div>
+
+            <div class="reports-list" id="reportsRows">
+              <!-- Dynamically Populated -->
+            </div>
+          </section>
+
+          <!-- TAB 9: ANNOUNCEMENTS / BROADCASTS -->
+          <section class="panel hidden" id="announcementsPanel">
+            <div class="toolbar">
+              <div class="section-title-row">
+                <h3>📢 Campus Broadcast Notifications</h3>
+                <span class="subtle">Active banners visible to all connected students</span>
+              </div>
+              <button class="create-circle-btn" id="openCreateBroadcastBtn">
+                <span>+</span> New Broadcast
+              </button>
+            </div>
+
+            <div class="announcements-grid" id="announcementsGrid">
+              <!-- Dynamically Populated -->
+            </div>
+          </section>
+
+          <!-- TAB 10: AUDIT LOGS -->
+          <section class="panel hidden" id="auditPanel">
+            <div class="toolbar">
+              <div class="section-title-row">
+                <h3>📜 Administrative Audit Log</h3>
+                <span class="subtle">Full chronological history of operator actions</span>
+              </div>
+              <button class="export-btn" id="exportAuditBtn">Export Log CSV</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Operator Email</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Reason / Details</th>
+                  </tr>
+                </thead>
+                <tbody id="auditRows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- TAB 11: SECURITY & ADMIN TEAM -->
+          <section class="panel hidden" id="securityPanel">
+            <div class="security-top-row">
+              <div>
+                <h2>🔐 Admin Team & Security Model</h2>
+                <p class="subtle">Manage authorized operator accounts and verify row-level security enforcement.</p>
+              </div>
+              <button class="create-circle-btn" id="openAddAdminBtn">
+                <span>+</span> Add Admin
+              </button>
+            </div>
+
+            <!-- Admin List Table -->
+            <div class="table-wrap" style="margin: 16px 0;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Operator Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Granted Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminsRows">
+                  <!-- Dynamically Populated -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Security Architecture Specs -->
+            <div class="security-guide-card">
+              <h3>🛡️ Zero-Trust Architecture Guarantee</h3>
+              <ul>
+                <li><strong>Direct Supabase Connection:</strong> All tables (Profiles, Vibes, Circles, DMs, Matches, Reports) query directly against PostgreSQL.</li>
+                <li><strong>Audit Trails:</strong> Every suspension, vibe deletion, circle removal, and report status change is tracked.</li>
+              </ul>
+            </div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <!-- ================= MODALS SYSTEM ================= -->
+
+    <!-- Modal 1: User Profile Inspector & Editor Modal -->
+    <div class="modal-backdrop hidden" id="userModalBackdrop"></div>
+    <div class="modal-card hidden" id="userModal">
+      <div class="modal-header">
+        <div class="user-modal-title">
+          <div class="user-modal-avatar" id="modalUserAvatar">🎓</div>
+          <div>
+            <h3 id="modalUserName">Student Name</h3>
+            <span class="user-modal-email" id="modalUserEmail">student@university.edu.ph</span>
+          </div>
+        </div>
+        <button class="close-modal-btn" id="closeUserModalBtn">×</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="editUserForm" class="edit-user-form">
+          <input type="hidden" id="editUserId" />
+          <div class="form-row-2col">
+            <label>
+              <span>Display Name</span>
+              <input type="text" id="editUserName" required />
+            </label>
+            <label>
+              <span>Age</span>
+              <input type="number" id="editUserAge" min="18" max="99" required />
+            </label>
+          </div>
+
+          <div class="form-row-2col">
+            <label>
+              <span>University Campus</span>
+              <input type="text" id="editUserUni" required />
+            </label>
+            <label>
+              <span>Degree / Major</span>
+              <input type="text" id="editUserCourse" required />
+            </label>
+          </div>
+
+          <label>
+            <span>Student Bio</span>
+            <textarea id="editUserBio" rows="2" placeholder="Student bio description..."></textarea>
+          </label>
+
+          <!-- Privacy Status Flags -->
+          <div class="privacy-status-box">
+            <strong style="font-size: 11.5px;">Privacy & Discovery Flags:</strong>
+            <div class="privacy-flags-grid" id="modalUserPrivacyFlags">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <div class="modal-actions-row">
+            <button type="submit" class="primary-btn">Save Profile Changes</button>
+            <button type="button" class="warn-btn" id="modalToggleSuspendBtn">Suspend Visibility</button>
+            <button type="button" class="danger-btn" id="modalDeleteUserBtn">Delete Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 2: Create / Edit Circle Modal -->
+    <div class="modal-backdrop hidden" id="circleModalBackdrop"></div>
+    <div class="modal-card hidden" id="circleModal">
+      <div class="modal-header">
+        <h3 id="circleModalTitle">Create Campus Circle</h3>
+        <button class="close-modal-btn" id="closeCircleModalBtn">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="circleForm" class="form-stack">
+          <input type="hidden" id="editCircleId" />
+          <div class="form-row-2col">
+            <label>
+              <span>Circle Name</span>
+              <input type="text" id="circleNameInput" placeholder="e.g. Campus Gaming Hub" required />
+            </label>
+            <label>
+              <span>Icon / Emoji</span>
+              <input type="text" id="circleIconInput" placeholder="🎮" value="🎮" required />
+            </label>
+          </div>
+          <label>
+            <span>Campus Target</span>
+            <select id="circleCampusInput" class="toolbar-select">
+              <option value="All Campuses">All Campuses</option>
+              <option value="CLSU">CLSU</option>
+              <option value="UP Diliman">UP Diliman</option>
+              <option value="Ateneo">Ateneo</option>
+              <option value="DLSU">DLSU</option>
+              <option value="UST">UST</option>
+              <option value="PUP">PUP</option>
+              <option value="Mapúa">Mapúa</option>
+            </select>
+          </label>
+          <label>
+            <span>Description</span>
+            <textarea id="circleDescInput" rows="3" placeholder="Community focus, meetups, dorm lounges..."></textarea>
+          </label>
+          <button type="submit" class="primary-btn" id="saveCircleSubmitBtn">Save Circle ✦</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 3: Post Mod Notice in Circle Modal -->
+    <div class="modal-backdrop hidden" id="modNoticeModalBackdrop"></div>
+    <div class="modal-card hidden" id="modNoticeModal">
+      <div class="modal-header">
+        <h3>📢 Post Mod Notice in Circle Lounge</h3>
+        <button class="close-modal-btn" id="closeModNoticeModalBtn">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="modNoticeForm" class="form-stack">
+          <input type="hidden" id="modNoticeCircleId" />
+          <label>
+            <span>Notice Message</span>
+            <textarea id="modNoticeBody" rows="3" placeholder="Official announcement pinned in this circle..." required></textarea>
+          </label>
+          <button type="submit" class="primary-btn">Publish to Circle Lounge 📢</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 4: Broadcast Announcement Modal -->
+    <div class="modal-backdrop hidden" id="broadcastModalBackdrop"></div>
+    <div class="modal-card hidden" id="broadcastModal">
+      <div class="modal-header">
+        <h3>📢 Post Campus Broadcast Alert</h3>
+        <button class="close-modal-btn" id="closeBroadcastModalBtn">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="broadcastForm" class="form-stack">
+          <label>
+            <span>Alert Title</span>
+            <input type="text" id="broadcastTitleInput" placeholder="e.g. Campus Maintenance Notice" required />
+          </label>
+          <label>
+            <span>Campus Filter</span>
+            <select id="broadcastCampusInput" class="toolbar-select">
+              <option value="all">All Campuses</option>
+              <option value="CLSU">CLSU</option>
+              <option value="UP Diliman">UP Diliman</option>
+              <option value="Ateneo">Ateneo</option>
+              <option value="DLSU">DLSU</option>
+              <option value="UST">UST</option>
+            </select>
+          </label>
+          <label>
+            <span>Broadcast Message</span>
+            <textarea id="broadcastMessageInput" rows="3" placeholder="Message broadcast to all student topbars..." required></textarea>
+          </label>
+          <button type="submit" class="primary-btn">Publish Campus Broadcast 📢</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 5: Add Administrator Modal -->
+    <div class="modal-backdrop hidden" id="adminModalBackdrop"></div>
+    <div class="modal-card hidden" id="adminModal">
+      <div class="modal-header">
+        <h3>👑 Grant Administrative Role</h3>
+        <button class="close-modal-btn" id="closeAdminModalBtn">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="addAdminForm" class="form-stack">
+          <label>
+            <span>Operator Email</span>
+            <input type="email" id="newAdminEmailInput" placeholder="operator@univcupid.test" required />
+          </label>
+          <label>
+            <span>Role</span>
+            <select id="newAdminRoleInput" class="toolbar-select">
+              <option value="Super Admin">Super Admin (Full DM, Matchmaking, Mod Access)</option>
+              <option value="Moderator">Moderator (Vibes, Circles & Reports Triage)</option>
+            </select>
+          </label>
+          <button type="submit" class="primary-btn">Grant Admin Access ✦</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 6: Media Lightbox Viewer -->
+    <div class="modal-backdrop hidden" id="mediaLightboxBackdrop"></div>
+    <div class="lightbox-modal hidden" id="mediaLightboxModal">
+      <button class="close-lightbox-btn" id="closeLightboxBtn">×</button>
+      <img id="lightboxImg" src="" alt="Media" />
+      <div class="lightbox-caption" id="lightboxCaption"></div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Supabase JS Library & App Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
