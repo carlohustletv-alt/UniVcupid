@@ -22,6 +22,10 @@ val supabaseAnonKey = providers.gradleProperty("SUPABASE_ANON_KEY")
     .orElse(providers.environmentVariable("SUPABASE_PUBLISHABLE_KEY"))
     .orElse(localProperties.getProperty("SUPABASE_ANON_KEY", ""))
     .orElse(localProperties.getProperty("SUPABASE_PUBLISHABLE_KEY", ""))
+val releaseStoreFile = localProperties.getProperty("RELEASE_STORE_FILE", "")
+val releaseStorePassword = localProperties.getProperty("RELEASE_STORE_PASSWORD", "")
+val releaseKeyAlias = localProperties.getProperty("RELEASE_KEY_ALIAS", "")
+val releaseKeyPassword = localProperties.getProperty("RELEASE_KEY_PASSWORD", "")
 
 android {
     namespace = "com.univcupid.app"
@@ -42,6 +46,20 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    if (releaseStoreFile.isNotBlank() && releaseStorePassword.isNotBlank() && releaseKeyAlias.isNotBlank() && releaseKeyPassword.isNotBlank()) {
+        signingConfigs {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+        buildTypes {
+            getByName("release").signingConfig = signingConfigs.getByName("release")
+        }
     }
 
     compileOptions {
