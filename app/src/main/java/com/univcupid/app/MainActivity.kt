@@ -1082,10 +1082,55 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
     }
 }
 
-@Composable private fun VibeRequestCard(request: VibeRequest, openProfile: () -> Unit, accept: () -> Unit, decline: () -> Unit) { Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) { Column(Modifier.padding(14.dp)) { Text(request.requester.displayName, fontWeight = FontWeight.Bold); Text("${request.requester.university} · ${request.requester.course}", color = Muted, fontSize = 12.sp); Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) { Button(accept, colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Accept") }; OutlinedButton(decline) { Text("Decline") } } } } }
+@Composable private fun VibeRequestCard(request: VibeRequest, openProfile: () -> Unit, accept: () -> Unit, decline: () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(request.id) { visible = true }
+    AnimatedVisibility(visible, enter = fadeIn(tween(220)) + slideInVertically(tween(260)) { it / 3 } + scaleIn(initialScale = .94f), exit = fadeOut(tween(140)) + scaleOut(targetScale = .94f)) {
+        Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) {
+            Column(Modifier.padding(14.dp)) {
+                Text(request.requester.displayName, fontWeight = FontWeight.Bold)
+                Text("${request.requester.university} · ${request.requester.course}", color = Muted, fontSize = 12.sp)
+                Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(accept, colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Accept") }
+                    OutlinedButton(decline) { Text("Decline") }
+                }
+            }
+        }
+    }
+}
 
-@Composable private fun PlanJoinRequestCard(request: VibeJoinRequest, openProfile: () -> Unit, accept: () -> Unit, decline: () -> Unit) { Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { Text("${request.requester.displayName} wants to join", fontWeight = FontWeight.Bold); Text("${request.activity} · ${request.caption.ifBlank { "Open Vibe" }}", color = Muted, fontSize = 12.sp, maxLines = 2); Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) { Button(accept, colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Accept + Chat") }; OutlinedButton(decline) { Text("Decline") } } } } }
-@Composable private fun MateCard(mate: PublicProfile, openProfile: () -> Unit) { Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) { Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) { Avatar(mate.displayName.firstOrNull()?.toString() ?: "V"); Column(Modifier.padding(start = 10.dp)) { Text(mate.displayName, fontWeight = FontWeight.Bold); Text("${mate.university} · ${mate.course}", color = Muted, fontSize = 12.sp) } } } }
+@Composable private fun PlanJoinRequestCard(request: VibeJoinRequest, openProfile: () -> Unit, accept: () -> Unit, decline: () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(request.id) { visible = true }
+    AnimatedVisibility(visible, enter = fadeIn(tween(220)) + slideInVertically(tween(260)) { it / 3 } + scaleIn(initialScale = .94f), exit = fadeOut(tween(140)) + scaleOut(targetScale = .94f)) {
+        Surface(shape = RoundedCornerShape(18.dp), color = VioletLight.copy(alpha = .58f), modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("${request.requester.displayName} wants to join", fontWeight = FontWeight.Bold)
+                Text("${request.activity} · ${request.caption.ifBlank { "Open Vibe" }}", color = Muted, fontSize = 12.sp, maxLines = 2)
+                Row(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(accept, colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Accept + Chat") }
+                    OutlinedButton(decline) { Text("Decline") }
+                }
+            }
+        }
+    }
+}
+
+@Composable private fun MateCard(mate: PublicProfile, openProfile: () -> Unit) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(mate.id) { visible = true }
+    AnimatedVisibility(visible, enter = fadeIn(tween(260)) + slideInHorizontally(tween(280)) { it / 4 } + scaleIn(initialScale = .96f), exit = fadeOut(tween(140)) + scaleOut(targetScale = .96f)) {
+        Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth().clickable(onClick = openProfile)) {
+            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Avatar(mate.displayName.firstOrNull()?.toString() ?: "V")
+                Column(Modifier.padding(start = 10.dp)) {
+                    Text(mate.displayName, fontWeight = FontWeight.Bold)
+                    Text("${mate.university} · ${mate.course}", color = Muted, fontSize = 12.sp)
+                }
+            }
+        }
+    }
+}
 
 @Composable private fun FullscreenPhoto(post: VibePost, onDismiss: () -> Unit) { Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) { Box(Modifier.fillMaxSize().background(Color.Black)) { VibePhoto(post.mediaUrl, "Full-size Vibe photo", Modifier.fillMaxSize().clickable(onClick = onDismiss)); Surface(color = Color.Black.copy(alpha = 0.62f), modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) { Column(Modifier.padding(18.dp)) { Text(post.author.displayName, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp); if (post.caption.isNotBlank()) Text(post.caption, color = Color.White, modifier = Modifier.padding(top = 6.dp)); TextButton(onDismiss) { Text("Close") } } } } } }
 
