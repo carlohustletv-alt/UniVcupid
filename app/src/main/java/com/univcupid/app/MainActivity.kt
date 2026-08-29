@@ -556,7 +556,26 @@ private fun CircleRoomScreen(repository: UnivCupidRepository, storage: SupabaseS
         if (loading) item { LoadingCard("Loading room feed...") }
         else if (error != null) item { ErrorCard(error.orEmpty()) { load() } }
         else if (posts.isEmpty()) item { EmptyCard("Quiet room", "Be the first to post a plan, photo, or idea.") }
-        else items(posts, key = { it.id }) { post -> CirclePostCard(post) { reaction -> scope.launch { runCatching { repository.reactToCirclePost(post.id, reaction) }.onSuccess { notify("Reaction sent"); load() }.onFailure { notify(it.message ?: "Reaction failed") } } } }
+        else items(posts, key = { it.id }) { post ->
+            CirclePostCard(
+                post = post,
+                canDelete = post.author.id == userId,
+                react = { reaction ->
+                    scope.launch {
+                        runCatching { repository.reactToCirclePost(post.id, reaction) }
+                            .onSuccess { notify("Reaction sent"); load() }
+                            .onFailure { notify(it.message ?: "Reaction failed") }
+                    }
+                },
+                delete = {
+                    scope.launch {
+                        runCatching { repository.deleteMyCirclePost(post.id) }
+                            .onSuccess { notify("Post removed from ${circle.name}"); load() }
+                            .onFailure { notify(it.message ?: "Could not delete post") }
+                    }
+                },
+            )
+        }
     }
 }
 
@@ -923,7 +942,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
     }
 }
 
-@Composable private fun CirclePostCard(post: CirclePost, react: (String) -> Unit) { Surface(shape = RoundedCornerShape(22.dp), color = Color.White, shadowElevation = 3.dp, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Avatar(post.author.displayName.firstOrNull()?.toString() ?: "U"); Column(Modifier.padding(start = 10.dp)) { Text(post.author.displayName, fontWeight = FontWeight.Bold); Text("${post.author.university} · ${post.minutesAgo}m ago", color = Muted, fontSize = 11.sp) } }; if (post.prompt.isNotBlank()) Surface(color = VioletLight, shape = RoundedCornerShape(12.dp)) { Text(post.prompt, Modifier.padding(horizontal = 10.dp, vertical = 5.dp), color = Violet, fontSize = 11.sp, fontWeight = FontWeight.Bold) }; Text(post.body, color = Ink, fontSize = 14.sp); VibePhoto(post.mediaUrl, "Circle post photo", Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp))); Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { listOf("Hype", "Same", "Game").forEach { Button({ react(it.lowercase()) }, colors = ButtonDefaults.buttonColors(containerColor = VioletLight, contentColor = Violet), shape = RoundedCornerShape(14.dp)) { Text(it, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }; Spacer(Modifier.weight(1f)); Text("${post.reactionCount} sparks", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold) } } } }
+@Composable private fun CirclePostCard(post: CirclePost, canDelete: Boolean, react: (String) -> Unit, delete: () -> Unit) { Surface(shape = RoundedCornerShape(22.dp), color = Color.White, shadowElevation = 3.dp, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Avatar(post.author.displayName.firstOrNull()?.toString() ?: "U"); Column(Modifier.weight(1f).padding(start = 10.dp)) { Text(post.author.displayName, fontWeight = FontWeight.Bold); Text("${post.author.university} · ${post.minutesAgo}m ago", color = Muted, fontSize = 11.sp) }; if (canDelete) TextButton(onClick = delete, colors = ButtonDefaults.textButtonColors(contentColor = Coral)) { Text("Delete", fontSize = 11.sp, fontWeight = FontWeight.Bold) } }; if (post.prompt.isNotBlank()) Surface(color = VioletLight, shape = RoundedCornerShape(12.dp)) { Text(post.prompt, Modifier.padding(horizontal = 10.dp, vertical = 5.dp), color = Violet, fontSize = 11.sp, fontWeight = FontWeight.Bold) }; Text(post.body, color = Ink, fontSize = 14.sp); VibePhoto(post.mediaUrl, "Circle post photo", Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp))); Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { listOf("Hype", "Same", "Game").forEach { Button({ react(it.lowercase()) }, colors = ButtonDefaults.buttonColors(containerColor = VioletLight, contentColor = Violet), shape = RoundedCornerShape(14.dp)) { Text(it, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }; Spacer(Modifier.weight(1f)); Text("${post.reactionCount} sparks", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold) } } } }
 
 @Composable private fun MyPostCard(post: VibePost, openPhoto: (VibePost) -> Unit, onDelete: () -> Unit) {
     Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) {
