@@ -8,6 +8,7 @@ data class PublicProfile(
     val course: String,
     val interests: List<String>,
     val commonVibePercent: Int,
+    val avatarUrl: String = "",
 )
 
 data class QuickShareDraft(

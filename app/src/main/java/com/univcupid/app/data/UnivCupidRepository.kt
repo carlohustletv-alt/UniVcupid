@@ -16,6 +16,8 @@ interface UnivCupidRepository {
     suspend fun loadConversations(): List<ConversationSummary>
     suspend fun loadMessages(conversationId: String): List<ChatMessage>
     suspend fun loadProfile(profileUserId: String): ProfileDetail
+    suspend fun loadMyProfile(): PublicProfile
+    suspend fun updateProfileAvatar(avatarUrl: String)
     suspend fun loadIncomingVibeRequests(): List<VibeRequest>
     suspend fun loadIncomingVibeJoinRequests(): List<VibeJoinRequest>
     suspend fun loadVibesmates(): List<PublicProfile>
@@ -48,7 +50,7 @@ class SupabaseUnivCupidRepository(
             put("age", age)
             put("university", university)
             put("course", course)
-        }), "resolution=merge-duplicates,return=representation")
+        }), "resolution=ignore-duplicates,return=representation")
         rest.post("privacy_settings", JSONArray().put(JSONObject().put("user_id", userId)), "resolution=merge-duplicates,return=representation")
     }
 
@@ -156,9 +158,15 @@ class SupabaseUnivCupidRepository(
     override suspend fun loadProfile(profileUserId: String): ProfileDetail {
         val profileRows = rest.post("rpc/get_profile_for_user", JSONObject().put("viewer_id", userId).put("profile_user_id", profileUserId))
         val item = profileRows.getJSONObject(0)
-        val profile = PublicProfile(item.getString("id"), item.optString("display_name"), item.optInt("age"), item.optString("university"), item.optString("course"), emptyList(), item.optInt("common_vibe_percent"))
+        val profile = PublicProfile(item.getString("id"), item.optString("display_name"), item.optInt("age"), item.optString("university"), item.optString("course"), emptyList(), item.optInt("common_vibe_percent"), item.optString("avatar_url"))
         val postRows = rest.post("rpc/get_profile_vibes", JSONObject().put("viewer_id", userId).put("profile_user_id", profileUserId).put("result_limit", 30))
         return ProfileDetail(profile, item.optString("vibesmate_status", "none"), List(postRows.length()) { postRows.getJSONObject(it).toVibePost() })
+    }
+
+    override suspend fun loadMyProfile(): PublicProfile = loadProfile(userId).profile
+
+    override suspend fun updateProfileAvatar(avatarUrl: String) {
+        rest.post("rpc/update_my_profile_avatar", JSONObject().put("p_avatar_url", avatarUrl))
     }
 
     override suspend fun loadIncomingVibeRequests(): List<VibeRequest> {
@@ -291,7 +299,7 @@ class SupabaseUnivCupidRepository(
 
     private fun JSONObject.toVibePost(): VibePost = VibePost(
         id = getString("id"),
-        author = PublicProfile(getString("author_id"), optString("display_name"), optInt("age"), optString("university"), optString("course"), emptyList(), optInt("common_vibe_percent")),
+        author = PublicProfile(getString("author_id"), optString("display_name"), optInt("age"), optString("university"), optString("course"), emptyList(), optInt("common_vibe_percent"), optString("avatar_url")),
         activity = optString("activity"),
         caption = optString("caption"),
         minutesAgo = optInt("minutes_ago"),

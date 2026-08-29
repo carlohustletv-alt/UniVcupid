@@ -15,6 +15,9 @@ data class SupabaseSession(
     val refreshToken: String,
     val userId: String,
     val email: String,
+    val displayName: String = "",
+    val university: String = "",
+    val course: String = "",
 )
 
 class SupabaseAuthClient(
@@ -28,9 +31,13 @@ class SupabaseAuthClient(
         allowPendingConfirmation = false,
     ) ?: error("Authentication failed")
 
-    suspend fun signUp(email: String, password: String): SupabaseSession? = authRequest(
+    suspend fun signUp(email: String, password: String, displayName: String, university: String, course: String): SupabaseSession? = authRequest(
         path = "/auth/v1/signup?redirect_to=${URLEncoder.encode(authCallback, StandardCharsets.UTF_8.name())}",
-        body = JSONObject().put("email", email.trim()).put("password", password),
+        body = JSONObject().put("email", email.trim()).put("password", password).put("data", JSONObject().apply {
+            put("display_name", displayName.trim())
+            put("university", university.trim())
+            put("course", course.trim())
+        }),
         allowPendingConfirmation = true,
     )
 
@@ -55,11 +62,15 @@ class SupabaseAuthClient(
         val response = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
         val json = if (response.isBlank()) JSONObject() else JSONObject(response)
         if (connection.responseCode !in 200..299) error(json.optString("msg", json.optString("error_description", "Could not complete email confirmation")))
+        val metadata = json.optJSONObject("user_metadata") ?: JSONObject()
         SupabaseSession(
             accessToken = accessToken,
             refreshToken = refreshToken,
             userId = json.getString("id"),
             email = json.optString("email"),
+            displayName = metadata.optString("display_name"),
+            university = metadata.optString("university"),
+            course = metadata.optString("course"),
         )
     }
 
@@ -93,11 +104,15 @@ class SupabaseAuthClient(
 
         if (allowPendingConfirmation && !json.has("access_token")) return@withContext null
         val user = json.optJSONObject("user") ?: error("Supabase did not return a user. Check email confirmation settings.")
+        val metadata = user.optJSONObject("user_metadata") ?: JSONObject()
         SupabaseSession(
             accessToken = json.getString("access_token"),
             refreshToken = json.optString("refresh_token"),
             userId = user.getString("id"),
             email = user.optString("email"),
+            displayName = metadata.optString("display_name"),
+            university = metadata.optString("university"),
+            course = metadata.optString("course"),
         )
     }
 }

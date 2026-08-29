@@ -154,7 +154,7 @@ private fun UnivCupidApp(callbackUri: Uri?) {
                     Tab.CIRCLES -> CirclesScreen(repository, storage, activeSession.userId) { toast = it }
                     Tab.CUPID -> CupidScreen(repository) { toast = it }
                     Tab.CHATS -> ChatsScreen(repository, openProfile = { selectedProfileId = it }) { toast = it }
-                    Tab.YOU -> ProfileScreen(activeSession, repository, onSignOut = { session = null }, openPhoto = { selectedPhoto = it }, openProfile = { selectedProfileId = it }) { toast = it }
+                    Tab.YOU -> ProfileScreen(activeSession, repository, storage, onSignOut = { session = null }, openPhoto = { selectedPhoto = it }, openProfile = { selectedProfileId = it }) { toast = it }
                 }
             }
             if (tab == Tab.VIBE) {
@@ -198,7 +198,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
-    var university by rememberSaveable { mutableStateOf("CLSU") }
+    var university by rememberSaveable { mutableStateOf("") }
     var course by rememberSaveable { mutableStateOf("") }
     var mood by rememberSaveable { mutableStateOf("☕") }
     var loading by rememberSaveable { mutableStateOf(false) }
@@ -238,7 +238,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Surface(color = Color.White.copy(alpha = 0.25f), shape = RoundedCornerShape(12.dp)) {
-                                Text("🎓 $university", Modifier.padding(horizontal = 8.dp, vertical = 3.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("🎓 ${university.ifBlank { "Your university" }}", Modifier.padding(horizontal = 8.dp, vertical = 3.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
                             Text("VERIFIED STUDENT ID", color = Color.White.copy(alpha = 0.85f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
@@ -283,20 +283,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(name, { name = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     
-                    Text("Select Campus:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Ink)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(listOf("CLSU", "UP Diliman", "Ateneo", "DLSU", "UST", "PUP", "Mapúa")) { u ->
-                            val sel = university == u
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = if (sel) Violet else Color.White,
-                                modifier = Modifier.clickable { university = u }
-                            ) {
-                                Text(u, Modifier.padding(horizontal = 10.dp, vertical = 6.dp), color = if (sel) Color.White else Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-
+                    OutlinedTextField(university, { university = it.take(100) }, label = { Text("University") }, placeholder = { Text("Enter your university") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(course, { course = it }, label = { Text("Degree / Major") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(email, { email = it }, label = { Text("Student Email") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(password, { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
@@ -306,14 +293,14 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                     error?.let { Text(it, color = Coral, fontSize = 12.sp) }
 
                     Button(
-                        enabled = !loading && email.isNotBlank() && password.length >= 6,
+                        enabled = !loading && name.isNotBlank() && university.isNotBlank() && course.isNotBlank() && email.isNotBlank() && password.length >= 6,
                         onClick = {
                             loading = true
                             error = null
                             info = null
                             scope.launch {
                                 runCatching {
-                                    val session = auth.signUp(email, password)
+                                    val session = auth.signUp(email, password, name, university, course)
                                     if (session == null) return@runCatching null
                                     SupabaseUnivCupidRepository(userId = session.userId, rest = SupabaseRestClient(accessTokenProvider = { session.accessToken }))
                                         .ensureProfile(name, 21, university, course)
@@ -355,10 +342,13 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                             scope.launch {
                                 runCatching {
                                     val session = auth.signIn(email, password)
-                                    val profileName = name.ifBlank { session.email.substringBefore("@").ifBlank { "Student" } }
-                                    val profileCourse = course.ifBlank { "Student" }
                                     SupabaseUnivCupidRepository(userId = session.userId, rest = SupabaseRestClient(accessTokenProvider = { session.accessToken }))
-                                        .ensureProfile(profileName, 21, university, profileCourse)
+                                        .ensureProfile(
+                                            session.displayName.ifBlank { session.email.substringBefore("@").ifBlank { "Student" } },
+                                            21,
+                                            session.university,
+                                            session.course,
+                                        )
                                     session
                                 }.onSuccess { loading = false; onAuthenticated(it) }
                                     .onFailure { loading = false; error = it.message ?: "Authentication failed" }
@@ -743,10 +733,13 @@ private fun ChatsScreen(repository: UnivCupidRepository, openProfile: (String) -
 }
 
 @Composable
-private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidRepository, onSignOut: () -> Unit, openPhoto: (VibePost) -> Unit, openProfile: (String) -> Unit, notify: (String) -> Unit) {
+private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidRepository, storage: SupabaseStorageClient, onSignOut: () -> Unit, openPhoto: (VibePost) -> Unit, openProfile: (String) -> Unit, notify: (String) -> Unit) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var privacy by remember { mutableStateOf(PrivacySettings()) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var profile by remember { mutableStateOf<PublicProfile?>(null) }
+    var uploadingAvatar by remember { mutableStateOf(false) }
     var myPosts by remember { mutableStateOf<List<VibePost>>(emptyList()) }
     var planRequests by remember { mutableStateOf<List<VibeJoinRequest>>(emptyList()) }
     var loadingPosts by remember { mutableStateOf(true) }
@@ -765,7 +758,30 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
             runCatching { repository.loadIncomingVibeJoinRequests() }.onSuccess { planRequests = it }
         }
     }
-    LaunchedEffect(Unit) { loadMyPosts(); loadPlanRequests() }
+    fun loadProfile() {
+        scope.launch {
+            runCatching { repository.loadMyProfile() }
+                .onSuccess { profile = it }
+                .onFailure { notify(it.message ?: "Could not load profile") }
+        }
+    }
+    val avatarPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                uploadingAvatar = true
+                runCatching {
+                    val url = storage.uploadVibePhoto(context.contentResolver, uri, session.userId)
+                    repository.updateProfileAvatar(url)
+                    url
+                }.onSuccess { url ->
+                    profile = (profile ?: PublicProfile(session.userId, session.email.substringBefore("@"), 0, "", "", emptyList(), 100)).copy(avatarUrl = url)
+                    notify("Profile photo updated")
+                }.onFailure { notify(it.message ?: "Could not update profile photo") }
+                uploadingAvatar = false
+            }
+        }
+    }
+    LaunchedEffect(Unit) { loadProfile(); loadMyPosts(); loadPlanRequests() }
 
     if (showSettings) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -788,8 +804,17 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Header("You", session.email) }
-        item { OutlinedButton(onClick = { showSettings = true }, modifier = Modifier.fillMaxWidth()) { Text("Settings & Privacy") } }
+        item {
+            val currentProfile = profile ?: PublicProfile(session.userId, session.email.substringBefore("@"), 0, "", "", emptyList(), 100)
+            OwnProfileHeader(
+                profile = currentProfile,
+                postCount = myPosts.size,
+                openPlanCount = planRequests.size,
+                uploadingAvatar = uploadingAvatar,
+                pickAvatar = { avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                openSettings = { showSettings = true },
+            )
+        }
         item { Text("Your posts", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
         when {
             loadingPosts -> item { LoadingCard("Loading your Vibes...") }
@@ -864,7 +889,11 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
     }
 }
 
-@Composable private fun ProfileHeaderCard(profile: PublicProfile, status: String, sendVibe: () -> Unit) { Surface(shape = RoundedCornerShape(24.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Avatar(profile.displayName.firstOrNull()?.toString() ?: "U"); Column(Modifier.padding(start = 12.dp)) { Text(profile.displayName, fontSize = 24.sp, fontWeight = FontWeight.Bold); Text("${profile.university} · ${profile.course}", color = Muted, fontSize = 12.sp) } }; Surface(color = VioletLight, shape = RoundedCornerShape(12.dp)) { Text("$status · ${profile.commonVibePercent}% spark", Modifier.padding(horizontal = 10.dp, vertical = 6.dp), color = Violet, fontWeight = FontWeight.Bold, fontSize = 12.sp) }; if (status == "none" || status == "incoming") Button(sendVibe, colors = ButtonDefaults.buttonColors(containerColor = Coral), modifier = Modifier.fillMaxWidth()) { Text(if (status == "incoming") "Accept vibe" else "Send vibe") } else Text(if (status == "vibesmate") "You are VibesMates. Private posts are visible." else "Vibe request sent.", color = Muted, fontSize = 12.sp) } } }
+@Composable private fun OwnProfileHeader(profile: PublicProfile, postCount: Int, openPlanCount: Int, uploadingAvatar: Boolean, pickAvatar: () -> Unit, openSettings: () -> Unit) { Surface(shape = RoundedCornerShape(24.dp), color = Color.White, shadowElevation = 3.dp, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { ProfileAvatar(profile, 88); Column(Modifier.weight(1f).padding(start = 14.dp)) { Text(profile.displayName.ifBlank { "Your profile" }, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink); Text(listOf(profile.university, profile.course).filter { it.isNotBlank() }.joinToString(" · ").ifBlank { "Add your campus details" }, color = Muted, fontSize = 12.sp); TextButton(onClick = pickAvatar, enabled = !uploadingAvatar, contentPadding = PaddingValues(0.dp)) { Text(if (uploadingAvatar) "Uploading photo..." else "Change profile photo", color = Violet, fontWeight = FontWeight.Bold) } } }; Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) { ProfileStat(postCount.toString(), "Vibes"); ProfileStat(openPlanCount.toString(), "Open plans"); ProfileStat("♡", "Connections") }; OutlinedButton(onClick = openSettings, modifier = Modifier.fillMaxWidth()) { Text("Edit profile & privacy") } } } }
+
+@Composable private fun ProfileStat(value: String, label: String) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(value, fontWeight = FontWeight.ExtraBold, color = Ink); Text(label, color = Muted, fontSize = 11.sp) } }
+
+@Composable private fun ProfileHeaderCard(profile: PublicProfile, status: String, sendVibe: () -> Unit) { Surface(shape = RoundedCornerShape(24.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { ProfileAvatar(profile, 42); Column(Modifier.padding(start = 12.dp)) { Text(profile.displayName, fontSize = 24.sp, fontWeight = FontWeight.Bold); Text("${profile.university} · ${profile.course}", color = Muted, fontSize = 12.sp) } }; Surface(color = VioletLight, shape = RoundedCornerShape(12.dp)) { Text("$status · ${profile.commonVibePercent}% spark", Modifier.padding(horizontal = 10.dp, vertical = 6.dp), color = Violet, fontWeight = FontWeight.Bold, fontSize = 12.sp) }; if (status == "none" || status == "incoming") Button(sendVibe, colors = ButtonDefaults.buttonColors(containerColor = Coral), modifier = Modifier.fillMaxWidth()) { Text(if (status == "incoming") "Accept vibe" else "Send vibe") } else Text(if (status == "vibesmate") "You are VibesMates. Private posts are visible." else "Vibe request sent.", color = Muted, fontSize = 12.sp) } } }
 
 @Composable private fun Header(title: String, subtitle: String) { Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { LogoMark(); Column(Modifier.padding(start = 10.dp)) { Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Ink); Text(subtitle, color = Muted, fontSize = 12.sp) } } }
 
@@ -1159,4 +1188,5 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
 
 @Composable private fun SettingRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) { Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) { Text(label, Modifier.weight(1f), fontWeight = FontWeight.SemiBold); Switch(checked, onChange) } }
 @Composable private fun Avatar(letter: String) { Surface(shape = CircleShape, color = Coral, modifier = Modifier.size(42.dp).border(2.dp, Violet, CircleShape)) { Box(contentAlignment = Alignment.Center) { Text(letter, color = Color.White, fontWeight = FontWeight.Bold) } } }
+@Composable private fun ProfileAvatar(profile: PublicProfile, size: Int) { if (profile.avatarUrl.isBlank()) { Surface(shape = CircleShape, color = Coral, modifier = Modifier.size(size.dp).border(2.dp, Violet, CircleShape)) { Box(contentAlignment = Alignment.Center) { Text(profile.displayName.firstOrNull()?.toString() ?: "U", color = Color.White, fontSize = (size / 2).sp, fontWeight = FontWeight.Bold) } } } else { AsyncImage(model = profile.avatarUrl, contentDescription = "${profile.displayName} profile photo", contentScale = ContentScale.Crop, modifier = Modifier.size(size.dp).clip(CircleShape).border(2.dp, Violet, CircleShape)) } }
 @Composable private fun LogoMark(size: Int = 42) { Image(painter = painterResource(R.drawable.logo), contentDescription = "UnivCupid logo", contentScale = ContentScale.Crop, modifier = Modifier.size(size.dp).clip(RoundedCornerShape(14.dp))) }
