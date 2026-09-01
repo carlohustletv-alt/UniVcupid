@@ -43,6 +43,11 @@ class SupabaseRestClient(
             val message = runCatching { JSONObject(text).optString("message") }.getOrNull().orEmpty()
             error(message.ifBlank { "Connection failed (${connection.responseCode})" })
         }
-        if (text.isBlank()) JSONArray() else if (text.trimStart().startsWith("[")) JSONArray(text) else JSONArray().put(JSONObject(text))
+        when {
+            text.isBlank() -> JSONArray()
+            text.trimStart().startsWith("[") -> JSONArray(text)
+            text.trimStart().startsWith("{") -> JSONArray().put(JSONObject(text))
+            else -> JSONArray().put(text.trim().trim('"'))
+        }
     }
 }
