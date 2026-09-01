@@ -93,6 +93,8 @@ data class CirclePostDraft(
     val mediaUrl: String = "",
 )
 
+data class CircleComment(val id: String, val author: String, val body: String, val minutesAgo: Int)
+
 data class ConversationSummary(
     val id: String,
     val title: String,

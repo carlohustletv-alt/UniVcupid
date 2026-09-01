@@ -12,6 +12,8 @@ interface UnivCupidRepository {
     suspend fun loadCirclePosts(circleId: String): List<CirclePost>
     suspend fun publishCirclePost(draft: CirclePostDraft): CirclePost
     suspend fun reactToCirclePost(postId: String, reaction: String)
+    suspend fun loadCircleComments(postId: String): List<CircleComment>
+    suspend fun addCircleComment(postId: String, body: String)
     suspend fun loadCupidCandidates(): List<PublicProfile>
     suspend fun loadConversations(): List<ConversationSummary>
     suspend fun loadMessages(conversationId: String): List<ChatMessage>
@@ -166,6 +168,13 @@ class SupabaseUnivCupidRepository(
         val profile = PublicProfile(item.getString("id"), item.optString("display_name"), item.optInt("age"), item.optString("university"), item.optString("course"), emptyList(), item.optInt("common_vibe_percent"), item.optString("avatar_url"))
         val postRows = rest.post("rpc/get_profile_vibes", JSONObject().put("viewer_id", userId).put("profile_user_id", profileUserId).put("result_limit", 30))
         return ProfileDetail(profile, item.optString("vibesmate_status", "none"), List(postRows.length()) { postRows.getJSONObject(it).toVibePost() })
+    }
+    override suspend fun loadCircleComments(postId: String): List<CircleComment> {
+        val rows = rest.post("rpc/get_circle_comments", JSONObject().put("target_post", postId))
+        return List(rows.length()) { i -> rows.getJSONObject(i).let { CircleComment(it.getString("id"), it.optString("display_name"), it.optString("body"), it.optInt("minutes_ago")) } }
+    }
+    override suspend fun addCircleComment(postId: String, body: String) {
+        rest.post("circle_comments", JSONArray().put(JSONObject().put("circle_post_id", postId).put("user_id", userId).put("body", body.trim())))
     }
 
     override suspend fun loadMyProfile(): PublicProfile = loadProfile(userId).profile

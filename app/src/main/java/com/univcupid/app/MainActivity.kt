@@ -523,12 +523,14 @@ private fun CircleRoomScreen(repository: UnivCupidRepository, storage: SupabaseS
     var body by rememberSaveable { mutableStateOf("") }
     var prompt by rememberSaveable { mutableStateOf("Today's idea") }
     var photoUri by rememberSaveable { mutableStateOf("") }
+    var commentingPost by remember { mutableStateOf<CirclePost?>(null) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> photoUri = uri?.toString().orEmpty() }
     val prompts = listOf("Today's idea", "Study hack", "Campus food find", "Event plan", "Question", "Photo dump")
     fun load() { scope.launch { loading = true; runCatching { repository.loadCirclePosts(circle.id) }.onSuccess { posts = it; error = null }.onFailure { error = it.message }; loading = false } }
     LaunchedEffect(circle.id) { load() }
+    commentingPost?.let { post -> CircleCommentsSheet(repository, post, onDismiss = { commentingPost = null }) { notify(it) } }
 
     LazyColumn(Modifier.fillMaxSize().background(Paper), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item { TextButton(onBack) { Text("‹ Back to Circles") } }
@@ -584,6 +586,7 @@ private fun CircleRoomScreen(repository: UnivCupidRepository, storage: SupabaseS
                             .onFailure { notify(it.message ?: "Could not delete post") }
                     }
                 },
+                comments = { commentingPost = post },
             )
         }
     }
@@ -1034,7 +1037,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
     }
 }
 
-@Composable private fun CirclePostCard(post: CirclePost, canDelete: Boolean, react: (String) -> Unit, delete: () -> Unit) { Surface(shape = RoundedCornerShape(22.dp), color = Color.White, shadowElevation = 3.dp, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Avatar(post.author.displayName.firstOrNull()?.toString() ?: "U"); Column(Modifier.weight(1f).padding(start = 10.dp)) { Text(post.author.displayName, fontWeight = FontWeight.Bold); Text("${post.author.university} · ${post.minutesAgo}m ago", color = Muted, fontSize = 11.sp) }; if (canDelete) TextButton(onClick = delete, colors = ButtonDefaults.textButtonColors(contentColor = Coral)) { Text("Delete", fontSize = 11.sp, fontWeight = FontWeight.Bold) } }; if (post.prompt.isNotBlank()) Surface(color = VioletLight, shape = RoundedCornerShape(12.dp)) { Text(post.prompt, Modifier.padding(horizontal = 10.dp, vertical = 5.dp), color = Violet, fontSize = 11.sp, fontWeight = FontWeight.Bold) }; Text(post.body, color = Ink, fontSize = 14.sp); VibePhoto(post.mediaUrl, "Circle post photo", Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp))); Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { listOf("Hype", "Same", "Game").forEach { Button({ react(it.lowercase()) }, colors = ButtonDefaults.buttonColors(containerColor = VioletLight, contentColor = Violet), shape = RoundedCornerShape(14.dp)) { Text(it, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }; Spacer(Modifier.weight(1f)); Text("${post.reactionCount} sparks", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold) } } } }
+@Composable private fun CirclePostCard(post: CirclePost, canDelete: Boolean, react: (String) -> Unit, delete: () -> Unit, comments: () -> Unit) { Surface(shape = RoundedCornerShape(22.dp), color = Color.White, shadowElevation = 3.dp, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { Avatar(post.author.displayName.firstOrNull()?.toString() ?: "U"); Column(Modifier.weight(1f).padding(start = 10.dp)) { Text(post.author.displayName, fontWeight = FontWeight.Bold); Text("${post.author.university} · ${post.minutesAgo}m ago", color = Muted, fontSize = 11.sp) }; if (canDelete) TextButton(onClick = delete, colors = ButtonDefaults.textButtonColors(contentColor = Coral)) { Text("Delete", fontSize = 11.sp, fontWeight = FontWeight.Bold) } }; if (post.prompt.isNotBlank()) Surface(color = VioletLight, shape = RoundedCornerShape(12.dp)) { Text(post.prompt, Modifier.padding(horizontal = 10.dp, vertical = 5.dp), color = Violet, fontSize = 11.sp, fontWeight = FontWeight.Bold) }; Text(post.body, color = Ink, fontSize = 14.sp); VibePhoto(post.mediaUrl, "Circle post photo", Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(16.dp))); Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { listOf("Hype", "Same", "Game").forEach { Button({ react(it.lowercase()) }, colors = ButtonDefaults.buttonColors(containerColor = VioletLight, contentColor = Violet), shape = RoundedCornerShape(14.dp)) { Text(it, fontSize = 12.sp, fontWeight = FontWeight.Bold) } }; TextButton(comments) { Text("Comments") }; Spacer(Modifier.weight(1f)); Text("${post.reactionCount} sparks", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold) } } } }
 
 @Composable private fun MyPostCard(post: VibePost, openPhoto: (VibePost) -> Unit, onDelete: () -> Unit) {
     Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) {
@@ -1164,6 +1167,14 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
             else items(notifications, key = { it.id }) { item -> Surface(shape = RoundedCornerShape(18.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) { Text(item.title, fontWeight = FontWeight.Bold); Text(item.body + if (item.count > 1) " · ${item.count} reactions" else "", color = Muted, fontSize = 12.sp) } } }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable private fun CircleCommentsSheet(repository: UnivCupidRepository, post: CirclePost, onDismiss: () -> Unit, notify: (String) -> Unit) {
+    val scope = rememberCoroutineScope(); var comments by remember { mutableStateOf<List<CircleComment>>(emptyList()) }; var body by rememberSaveable { mutableStateOf("") }
+    fun load() { scope.launch { runCatching { repository.loadCircleComments(post.id) }.onSuccess { comments = it }.onFailure { notify(it.message ?: "Could not load comments") } } }
+    LaunchedEffect(post.id) { load() }
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = Paper) { Column(Modifier.padding(20.dp)) { Text("Comments", fontSize = 24.sp, fontWeight = FontWeight.Bold); LazyColumn(Modifier.weight(1f, false).heightIn(max = 330.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { items(comments, key = { it.id }) { comment -> Surface(shape = RoundedCornerShape(14.dp), color = Color.White) { Column(Modifier.padding(10.dp)) { Text(comment.author, fontWeight = FontWeight.Bold, fontSize = 12.sp); Text(comment.body, color = Ink, fontSize = 13.sp) } } } }; Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) { OutlinedTextField(body, { body = it.take(500) }, placeholder = { Text("Add a comment") }, modifier = Modifier.weight(1f), singleLine = true); Button({ if (body.isNotBlank()) scope.launch { runCatching { repository.addCircleComment(post.id, body) }.onSuccess { body = ""; load() }.onFailure { notify(it.message ?: "Could not comment") } } }, modifier = Modifier.padding(start = 8.dp)) { Text("Post") } } } }
 }
 
 private fun createQrImage(value: String) = QRCodeWriter().encode(value, BarcodeFormat.QR_CODE, 640, 640).let { matrix ->
