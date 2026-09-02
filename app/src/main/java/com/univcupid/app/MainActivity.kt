@@ -314,6 +314,10 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                     OutlinedTextField(course, { course = it }, label = { Text("Course, role, or interest") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(email, { email = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(password, { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    TextButton(onClick = {
+                        if (email.isBlank()) error = "Enter your email first."
+                        else scope.launch { runCatching { auth.requestPasswordReset(email) }.onSuccess { info = "Password reset email sent. Check your inbox." }.onFailure { error = it.message ?: "Could not send reset email" } }
+                    }) { Text("Forgot password?") }
 
                     callbackError?.let { Text(it, color = Coral, fontSize = 12.sp) }
                     info?.let { Text(it, color = Mint, fontSize = 12.sp) }
@@ -369,13 +373,6 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                             scope.launch {
                                 runCatching {
                                     val session = auth.signIn(email, password)
-                                    SupabaseUnivCupidRepository(userId = session.userId, rest = SupabaseRestClient(accessTokenProvider = { session.accessToken }))
-                                        .ensureProfile(
-                                            session.displayName.ifBlank { session.email.substringBefore("@").ifBlank { "Student" } },
-                                            21,
-                                            session.university,
-                                            session.course,
-                                        )
                                     session
                                 }.onSuccess { loading = false; onAuthenticated(it) }
                                     .onFailure { loading = false; error = it.message ?: "Authentication failed" }
