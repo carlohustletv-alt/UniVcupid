@@ -425,7 +425,7 @@ private fun VibeScreen(repository: UnivCupidRepository, openPhoto: (VibePost) ->
         }
         if (loading) item { LoadingCard("Loading Vibe feed...") }
         else if (error != null) item { ErrorCard(error.orEmpty()) { load() } }
-        else if (posts.isEmpty()) item { EmptyCard("No Vibes yet", "Post a QuickShare to start campus activity.") }
+        else if (posts.isEmpty()) item { EmptyCard("No Vibes yet", "Post a QuickShare to start community activity.") }
         else items(posts, key = { it.id }) { post ->
             VibePostCard(
                 post = post,
@@ -507,7 +507,7 @@ private fun CirclesScreen(repository: UnivCupidRepository, storage: SupabaseStor
         item { Button({ showCreate = true }, colors = ButtonDefaults.buttonColors(containerColor = Violet), modifier = Modifier.fillMaxWidth()) { Text("Create Circle +", fontWeight = FontWeight.Bold) } }
         if (loading) item { LoadingCard("Loading Circles...") }
         else if (error != null) item { ErrorCard(error.orEmpty()) { load() } }
-        else if (circles.isEmpty()) item { EmptyCard("No Circles found", "Create the first Circle for this campus interest.") }
+        else if (circles.isEmpty()) item { EmptyCard("No Circles found", "Create the first Circle for this shared interest.") }
         else items(circles, key = { it.id }) { circle ->
             CircleCard(circle, open = { if (circle.joined) selectedCircle = circle else notify("Join this Circle first") }) { leave ->
                 scope.launch {
@@ -532,7 +532,7 @@ private fun CircleRoomScreen(repository: UnivCupidRepository, storage: SupabaseS
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> photoUri = uri?.toString().orEmpty() }
-    val prompts = listOf("Today's idea", "Study hack", "Campus food find", "Event plan", "Question", "Photo dump")
+    val prompts = listOf("Today's idea", "Work win", "Study tip", "Event plan", "Question", "Photo dump")
     fun load() { scope.launch { loading = true; runCatching { repository.loadCirclePosts(circle.id) }.onSuccess { posts = it; error = null }.onFailure { error = it.message }; loading = false } }
     LaunchedEffect(circle.id) { load() }
     commentingPost?.let { post -> CircleCommentsSheet(repository, post, onDismiss = { commentingPost = null }) { notify(it) } }
@@ -543,8 +543,8 @@ private fun CircleRoomScreen(repository: UnivCupidRepository, storage: SupabaseS
             Surface(shape = RoundedCornerShape(24.dp), color = Ink, modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.background(Brush.linearGradient(listOf(Violet, Ink))).padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("${circle.icon} ${circle.name}", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-                    Text(circle.description.ifBlank { "Share photos, ideas, plans, and campus finds with this Circle." }, color = Color.White.copy(alpha = .84f), fontSize = 13.sp)
-                    Text("${circle.campus.ifBlank { "Campus" }} · ${circle.activeCount} members", color = Color(0xFFFFD0D9), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(circle.description.ifBlank { "Share photos, ideas, plans, and local finds with this Circle." }, color = Color.White.copy(alpha = .84f), fontSize = 13.sp)
+                    Text("${circle.campus.ifBlank { "Community" }} · ${circle.activeCount} members", color = Color(0xFFFFD0D9), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -553,7 +553,7 @@ private fun CircleRoomScreen(repository: UnivCupidRepository, storage: SupabaseS
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("Start something fun", fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(prompts) { item -> FilterChip(prompt == item, { prompt = item }, { Text(item) }) } }
-                    OutlinedTextField(body, { body = it.take(500) }, placeholder = { Text("Drop an idea, invite, tip, or campus story...") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+                    OutlinedTextField(body, { body = it.take(500) }, placeholder = { Text("Drop an idea, invite, tip, or community story...") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
                     if (photoUri.isNotBlank()) VibePhoto(photoUri, "Selected Circle photo", Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(16.dp)))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton({ launcher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) { Text(if (photoUri.isBlank()) "Add photo" else "Change photo") }
@@ -628,7 +628,7 @@ private fun CupidScreen(repository: UnivCupidRepository, notify: (String) -> Uni
         when {
             loading -> LoadingCard("Loading candidates...")
             error != null -> ErrorCard(error.orEmpty()) { load() }
-            people.isEmpty() -> EmptyCard("No Cupid candidates", "Wait for more verified student profiles.")
+            people.isEmpty() -> EmptyCard("No Cupid candidates", "Wait for more verified community profiles.")
             else -> {
                 val person = people[index.coerceAtMost(people.lastIndex)]
                 CupidCard(person, onReport = { reportingCandidate = person })
@@ -707,7 +707,7 @@ private fun ChatsScreen(repository: UnivCupidRepository, openProfile: (String) -
             if (loading) LoadingCard("Loading messages...")
             else if (error != null) ErrorCard(error.orEmpty()) { loadMessages(conversation) }
             else LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (messages.isEmpty()) item { EmptyCard("No messages yet", "Send the first campus hello.") }
+                if (messages.isEmpty()) item { EmptyCard("No messages yet", "Send the first friendly hello.") }
                 else items(messages, key = { it.id }) { message ->
                     MessageBubble(
                         message = message,
@@ -854,7 +854,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
             }
             item { Text("Privacy", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
             item {
-                SettingRow("Show university", privacy.showUniversity) { privacy = privacy.copy(showUniversity = it); scope.launch { repository.updatePrivacy(privacy) }; notify("Privacy updated") }
+                SettingRow("Show affiliation", privacy.showUniversity) { privacy = privacy.copy(showUniversity = it); scope.launch { repository.updatePrivacy(privacy) }; notify("Privacy updated") }
                 SettingRow("Show course", privacy.showCourse) { privacy = privacy.copy(showCourse = it); scope.launch { repository.updatePrivacy(privacy) }; notify("Privacy updated") }
                 SettingRow("Show age", privacy.showAge) { privacy = privacy.copy(showAge = it); scope.launch { repository.updatePrivacy(privacy) }; notify("Privacy updated") }
                 SettingRow("Allow DMs", privacy.allowDms) { privacy = privacy.copy(allowDms = it); scope.launch { repository.updatePrivacy(privacy) }; notify("Privacy updated") }
@@ -1090,7 +1090,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
         Surface(shape = RoundedCornerShape(22.dp), color = Color.White, modifier = Modifier.fillMaxWidth().padding(12.dp)) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Report $targetName", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Ink)
-                Text("Help keep the campus safe. Reports are immediately reviewed by Super Admin.", color = Muted, fontSize = 12.sp)
+                Text("Help keep the community safe. Reports are reviewed by the moderation team.", color = Muted, fontSize = 12.sp)
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     items(reasons) { r ->
                         FilterChip(selected = reason == r, onClick = { reason = r }, label = { Text(r, fontSize = 11.sp) })
@@ -1128,8 +1128,8 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
             Text("Create Circle", fontSize = 26.sp, fontWeight = FontWeight.Bold)
             OutlinedTextField(name, { name = it.take(60) }, label = { Text("Circle name") }, placeholder = { Text("Campus Photowalk") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             OutlinedTextField(icon, { icon = it.take(8) }, label = { Text("Icon") }, placeholder = { Text("CAM") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            OutlinedTextField(campus, { campus = it.take(60) }, label = { Text("Campus") }, placeholder = { Text("CLSU") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-            OutlinedTextField(description, { description = it.take(180) }, label = { Text("Description") }, placeholder = { Text("What students do in this Circle") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+            OutlinedTextField(campus, { campus = it.take(60) }, label = { Text("Community or area") }, placeholder = { Text("Your city, school, workplace, or online") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+            OutlinedTextField(description, { description = it.take(180) }, label = { Text("Description") }, placeholder = { Text("What members do in this Circle") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
             Button(
                 onClick = { onCreate(CircleDraft(name = name, icon = icon, description = description, campus = campus)) },
                 enabled = name.trim().length >= 3,

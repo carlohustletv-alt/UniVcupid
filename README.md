@@ -1,7 +1,7 @@
 # UnivCupid
 
 <p align="center">
-  <strong>A campus-first social discovery app for finding your people.</strong><br />
+  <strong>A community-first social discovery app for finding your people.</strong><br />
   Built natively for Android with Kotlin, Jetpack Compose, and Supabase.
 </p>
 
@@ -17,7 +17,7 @@
 </p>
 
 > [!IMPORTANT]
-> UnivCupid is a student community product. Deploy it only with your institution's privacy, moderation, and consent requirements in place.
+> UnivCupid welcomes students, professionals, and local communities. Deploy it with clear privacy, moderation, and consent requirements.
 
 ## Choose Your Path
 
@@ -33,10 +33,10 @@
 | Experience | What it does |
 | --- | --- |
 | **Vibes** | Share activity updates, photos, reactions, and consent-based plan requests. |
-| **Cupid** | Discover compatible students and create mutual matches. |
+| **Cupid** | Discover compatible people and create mutual matches. |
 | **VibesMates** | Send, accept, and manage private social connections. |
-| **Circles** | Join campus communities and post in their lounge feeds. |
-| **Chats** | Message matched students in private conversations. |
+| **Circles** | Join interest-based communities and post in their lounge feeds. |
+| **Chats** | Message matched people in private conversations. |
 | **Profile & privacy** | Control discovery, messages, and campus visibility. |
 | **Management dashboard** | Review reports, moderation data, circles, and broadcasts. |
 
