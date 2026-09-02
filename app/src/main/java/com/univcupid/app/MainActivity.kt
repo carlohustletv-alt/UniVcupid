@@ -237,7 +237,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                     Text("UnivCupid", fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = Ink)
                 }
                 Surface(color = Mint.copy(alpha = 0.15f), shape = RoundedCornerShape(16.dp)) {
-                    Text("Live Campus", Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Mint)
+                    Text("Live Community", Modifier.padding(horizontal = 8.dp, vertical = 4.dp), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Mint)
                 }
             }
         }
@@ -260,7 +260,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                             Surface(color = Color.White.copy(alpha = 0.25f), shape = RoundedCornerShape(12.dp)) {
                                 Text("🎓 ${university.ifBlank { "Your university" }}", Modifier.padding(horizontal = 8.dp, vertical = 3.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
-                            Text("VERIFIED STUDENT ID", color = Color.White.copy(alpha = 0.85f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                Text("COMMUNITY PROFILE", color = Color.White.copy(alpha = 0.85f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -303,9 +303,9 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(name, { name = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     
-                    OutlinedTextField(university, { university = it.take(100) }, label = { Text("University") }, placeholder = { Text("Enter your university") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                    OutlinedTextField(course, { course = it }, label = { Text("Degree / Major") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                    OutlinedTextField(email, { email = it }, label = { Text("Student Email") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(university, { university = it.take(100) }, label = { Text("University or workplace") }, placeholder = { Text("Enter your school, company, or community") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(course, { course = it }, label = { Text("Course, role, or interest") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(email, { email = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(password, { password = it }, label = { Text("Password") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
 
                     callbackError?.let { Text(it, color = Coral, fontSize = 12.sp) }
@@ -340,7 +340,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                         colors = ButtonDefaults.buttonColors(containerColor = Violet),
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         shape = RoundedCornerShape(14.dp)
-                    ) { Text(if (loading) "Issuing Passport..." else "Issue Campus Passport ✦", fontWeight = FontWeight.Bold) }
+                    ) { Text(if (loading) "Creating profile..." else "Join the community ✦", fontWeight = FontWeight.Bold) }
                 }
             }
         } else {
@@ -377,7 +377,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                         colors = ButtonDefaults.buttonColors(containerColor = Violet),
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         shape = RoundedCornerShape(14.dp)
-                    ) { Text(if (loading) "Signing In..." else "Sign In to Campus ✦", fontWeight = FontWeight.Bold) }
+                    ) { Text(if (loading) "Signing In..." else "Sign In ✦", fontWeight = FontWeight.Bold) }
                 }
             }
         }
@@ -410,7 +410,7 @@ private fun VibeScreen(repository: UnivCupidRepository, openPhoto: (VibePost) ->
     }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item { Header("Vibe", "See what campus is doing right now") }
+        item { Header("Vibe", "See what your community is doing right now") }
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(listOf("All", "Coffee", "Study", "Gaming", "Food", "Dating")) { vibe ->
@@ -488,7 +488,7 @@ private fun CirclesScreen(repository: UnivCupidRepository, storage: SupabaseStor
     }
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { Header("Circles", "Campus rooms built around interests") }
+        item { Header("Circles", "Community rooms built around interests") }
         item {
             OutlinedTextField(
                 value = query,
@@ -693,6 +693,12 @@ private fun ChatsScreen(repository: UnivCupidRepository, openProfile: (String) -
             TextButton(onClick = { selectedConversation = null; load() }) { Text("‹ Back to Chats") }
             Header(conversation.title, "Live conversation")
             Spacer(Modifier.height(12.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(listOf("✨ Vibe check!", "☕ Coffee break?", "📚 Study together?", "🎮 Game later?", "👋 Hey!")) { starter ->
+                    AssistChip(onClick = { messageText = starter }, label = { Text(starter, fontSize = 11.sp) })
+                }
+            }
+            Spacer(Modifier.height(8.dp))
             if (loading) LoadingCard("Loading messages...")
             else if (error != null) ErrorCard(error.orEmpty()) { loadMessages(conversation) }
             else LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -721,6 +727,17 @@ private fun ChatsScreen(repository: UnivCupidRepository, openProfile: (String) -
                             .onFailure { notify(it.message ?: "Message failed") }
                     }
                 }, colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Send") }
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("❤️", "😂", "🔥", "🙌").forEach { emoji ->
+                    OutlinedButton(onClick = {
+                        scope.launch {
+                            runCatching { repository.sendMessage(conversation.id, emoji) }
+                                .onSuccess { loadMessages(conversation) }
+                                .onFailure { notify(it.message ?: "Could not send reaction") }
+                        }
+                    }, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)) { Text(emoji) }
+                }
             }
         }
         LaunchedEffect(conversation.id) { loadMessages(conversation) }
