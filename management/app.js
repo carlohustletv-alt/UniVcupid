@@ -165,7 +165,8 @@ async function loadOverview() {
       convRes,
       matchesRes,
       communityRes,
-      activityRes
+      activityRes,
+      locationsRes
     ] = await Promise.all([
       client.from('profiles').select('*', { count: 'exact' }),
       client.from('vibes').select('*', { count: 'exact' }),
@@ -176,7 +177,8 @@ async function loadOverview() {
       client.from('conversations').select('*', { count: 'exact' }),
       client.from('matches').select('*', { count: 'exact' }),
       client.rpc('admin_community_data_summary'),
-      client.rpc('admin_recent_community_activity', { result_limit: 12 })
+      client.rpc('admin_recent_community_activity', { result_limit: 12 }),
+      client.rpc('admin_active_locations', { result_limit: 8 })
     ]);
 
     const totalProfiles = profilesRes.count ?? (profilesRes.data?.length || 0);
@@ -267,7 +269,14 @@ async function loadOverview() {
     }
 
     // Recent Audit Stream
-    const auditLogs = activityRes.data?.length ? activityRes.data : getAuditLogs().slice(0, 5);
+    const locationActivity = (locationsRes.data || []).map((location) => ({
+      kind: 'location',
+      title: 'Nearby sharing active',
+      detail: `${location.display_name} · approx. ${location.approximate_location}`,
+      created_at: location.updated_at
+    }));
+    const auditLogs = [...locationActivity, ...(activityRes.data?.length ? activityRes.data : getAuditLogs().slice(0, 5))]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 12);
     const streamContainer = $('#overviewAuditStream');
     if (streamContainer) {
       if (auditLogs.length === 0) {
