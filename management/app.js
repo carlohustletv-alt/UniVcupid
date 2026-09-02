@@ -164,7 +164,8 @@ async function loadOverview() {
       vibeReqRes,
       convRes,
       matchesRes,
-      communityRes
+      communityRes,
+      activityRes
     ] = await Promise.all([
       client.from('profiles').select('*', { count: 'exact' }),
       client.from('vibes').select('*', { count: 'exact' }),
@@ -174,7 +175,8 @@ async function loadOverview() {
       client.from('vibe_requests').select('*', { count: 'exact' }),
       client.from('conversations').select('*', { count: 'exact' }),
       client.from('matches').select('*', { count: 'exact' }),
-      client.rpc('admin_community_data_summary')
+      client.rpc('admin_community_data_summary'),
+      client.rpc('admin_recent_community_activity', { result_limit: 12 })
     ]);
 
     const totalProfiles = profilesRes.count ?? (profilesRes.data?.length || 0);
@@ -265,7 +267,7 @@ async function loadOverview() {
     }
 
     // Recent Audit Stream
-    const auditLogs = getAuditLogs().slice(0, 5);
+    const auditLogs = activityRes.data?.length ? activityRes.data : getAuditLogs().slice(0, 5);
     const streamContainer = $('#overviewAuditStream');
     if (streamContainer) {
       if (auditLogs.length === 0) {
@@ -273,10 +275,10 @@ async function loadOverview() {
       } else {
         streamContainer.innerHTML = auditLogs.map((act) => `
           <div class="mini-stream-item">
-            <span class="badge" style="background: var(--violet-light); color: var(--violet);">${escapeHtml(act.action)}</span>
+            <span class="badge" style="background: var(--violet-light); color: var(--violet);">${escapeHtml(act.kind || act.action)}</span>
             <div style="flex:1; overflow:hidden;">
-              <strong style="font-size: 11.5px;">${escapeHtml(act.reason || 'System action')}</strong>
-              <small class="subtle" style="display:block;">by ${escapeHtml(act.admin_email || 'Admin')} · ${new Date(act.created_at).toLocaleTimeString()}</small>
+              <strong style="font-size: 11.5px;">${escapeHtml(act.title || act.reason || 'System action')}</strong>
+              <small class="subtle" style="display:block;">${escapeHtml(act.detail || act.admin_email || 'Admin')} · ${new Date(act.created_at).toLocaleTimeString()}</small>
             </div>
           </div>
         `).join('');
