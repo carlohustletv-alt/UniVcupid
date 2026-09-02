@@ -224,6 +224,12 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
     var loading by rememberSaveable { mutableStateOf(false) }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     var info by rememberSaveable { mutableStateOf<String?>(null) }
+    val profileScale by rememberInfiniteTransition(label = "profileWelcome").animateFloat(
+        initialValue = .98f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1500), RepeatMode.Reverse),
+        label = "profileScale",
+    )
 
     LazyColumn(
         Modifier.fillMaxSize().background(Paper).padding(horizontal = 20.dp, vertical = 24.dp),
@@ -242,10 +248,9 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
             }
         }
 
-        // Holographic Campus Passport Preview Card
         item {
             Surface(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)),
+                modifier = Modifier.fillMaxWidth().graphicsLayer { scaleX = profileScale; scaleY = profileScale }.clip(RoundedCornerShape(20.dp)),
                 color = Color.Transparent,
                 shadowElevation = 8.dp
             ) {
@@ -260,7 +265,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                             Surface(color = Color.White.copy(alpha = 0.25f), shape = RoundedCornerShape(12.dp)) {
                                 Text("🎓 ${university.ifBlank { "Your university" }}", Modifier.padding(horizontal = 8.dp, vertical = 3.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
-                                Text("COMMUNITY PROFILE", color = Color.White.copy(alpha = 0.85f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                Text("YOUR COMMUNITY PROFILE", color = Color.White.copy(alpha = 0.85f), fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -269,8 +274,8 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
                             }
                             Column {
                                 Text(name.ifBlank { "Your Name" }, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                Text("B.S. ${course.ifBlank { "Degree" }} · Year 3", color = Color.White.copy(alpha = 0.9f), fontSize = 11.sp)
-                                Text("PASS #2026-${(1000..9999).random()}", color = Color.White.copy(alpha = 0.75f), fontSize = 10.sp)
+                                Text(course.ifBlank { "Add your role or interests" }, color = Color.White.copy(alpha = 0.9f), fontSize = 11.sp)
+                                Text("Meet people, share plans, build connections", color = Color.White.copy(alpha = 0.75f), fontSize = 10.sp)
                             }
                         }
                     }
@@ -281,7 +286,7 @@ private fun AuthScreen(callbackError: String?, onAuthenticated: (SupabaseSession
         // Mode Switcher Tabs
         item {
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(Color.White).padding(4.dp)) {
-                listOf("signup" to "🎓 Issue ID", "signin" to "🔑 Sign In").forEach { (tabKey, label) ->
+                listOf("signup" to "Create account", "signin" to "Sign in").forEach { (tabKey, label) ->
                     val isSelected = mode == tabKey
                     Box(
                         modifier = Modifier
