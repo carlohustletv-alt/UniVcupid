@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.graphics.Bitmap
 import android.graphics.Color as AndroidColor
+import android.view.WindowManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -86,6 +87,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         callbackUri = intent?.data
         setContent {
             MaterialTheme(colorScheme = lightColorScheme(primary = Violet, background = Paper, surface = Color.White)) {
