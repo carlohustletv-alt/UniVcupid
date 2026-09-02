@@ -1,0 +1,11 @@
+alter table public.messages add column if not exists reply_to_id uuid references public.messages(id) on delete set null;
+alter table public.messages add column if not exists media_url text;
+alter table public.messages add column if not exists media_kind text check (media_kind in ('image', 'audio'));
+create table if not exists public.message_reactions (message_id uuid not null references public.messages(id) on delete cascade, user_id uuid not null references public.profiles(id) on delete cascade, reaction text not null check (length(reaction) between 1 and 16), created_at timestamptz not null default now(), primary key (message_id, user_id));
+create table if not exists public.typing_presence (conversation_id uuid not null references public.conversations(id) on delete cascade, user_id uuid not null references public.profiles(id) on delete cascade, updated_at timestamptz not null default now(), primary key (conversation_id, user_id));
+alter table public.message_reactions enable row level security; alter table public.typing_presence enable row level security;
+create policy "members read message reactions" on public.message_reactions for select using (exists (select 1 from public.conversation_members cm join public.messages m on m.conversation_id = cm.conversation_id where m.id = message_reactions.message_id and cm.user_id = auth.uid()));
+create policy "members react as self" on public.message_reactions for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "members read typing" on public.typing_presence for select using (exists (select 1 from public.conversation_members cm where cm.conversation_id = typing_presence.conversation_id and cm.user_id = auth.uid()));
+create policy "members update own typing" on public.typing_presence for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create index if not exists message_reactions_message_idx on public.message_reactions (message_id);
