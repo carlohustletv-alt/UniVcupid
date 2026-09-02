@@ -1,0 +1,12 @@
+alter table public.profiles add column if not exists networking_mode boolean not null default false;
+alter table public.profiles add column if not exists availability text;
+create table if not exists public.profile_skills (user_id uuid not null references public.profiles(id) on delete cascade, skill text not null check (length(trim(skill)) between 1 and 50), primary key (user_id, skill));
+create table if not exists public.saved_vibes (user_id uuid not null references public.profiles(id) on delete cascade, vibe_id uuid not null references public.vibes(id) on delete cascade, created_at timestamptz not null default now(), primary key (user_id, vibe_id));
+create table if not exists public.community_opportunities (id uuid primary key default gen_random_uuid(), author_id uuid not null references public.profiles(id) on delete cascade, kind text not null check (kind in ('mentorship','project','job')), title text not null check (length(trim(title)) between 3 and 120), details text not null check (length(trim(details)) between 3 and 1000), created_at timestamptz not null default now());
+alter table public.profile_skills enable row level security; alter table public.saved_vibes enable row level security; alter table public.community_opportunities enable row level security;
+create policy "users manage own skills" on public.profile_skills for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "users manage own saved vibes" on public.saved_vibes for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+create policy "community reads opportunities" on public.community_opportunities for select using (true);
+create policy "authors create opportunities" on public.community_opportunities for insert with check (author_id = auth.uid());
+create policy "authors manage opportunities" on public.community_opportunities for update using (author_id = auth.uid()) with check (author_id = auth.uid());
+create index if not exists community_opportunities_kind_created_idx on public.community_opportunities (kind, created_at desc);
