@@ -116,6 +116,16 @@ function showLogin(message = '') {
   }
 }
 
+async function requireAdmin(session) {
+  const { data, error } = await client.rpc('is_app_admin');
+  if (error || data !== true) {
+    await client.auth.signOut();
+    throw new Error('This account is not an active management administrator.');
+  }
+  state.session = session;
+  state.user = { email: session.user.email || 'admin', id: session.user.id };
+}
+
 function setTab(tab) {
   state.tab = tab;
   $$('.nav').forEach((button) => {
@@ -985,9 +995,8 @@ async function init() {
   state.user = session?.user ? { email: session.user.email || 'authenticated admin', id: session.user.id } : null;
 
   if (session?.user) {
-    showDashboard();
-    setTab('overview');
-    toast('Super Admin Command Suite Connected ✦');
+    try { await requireAdmin(session); showDashboard(); setTab('overview'); toast('Management console connected'); }
+    catch (error) { showLogin(error.message); }
   }
 }
 
@@ -1004,8 +1013,9 @@ $('#loginForm')?.addEventListener('submit', async (event) => {
   }
 
   try {
-    const { data } = await client.auth.signInWithPassword({ email, password });
-    state.user = { email: email || 'admin@univcupid.test', id: data?.user?.id || 'admin-1' };
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if (error || !data.session) throw error || new Error('Login failed');
+    await requireAdmin(data.session);
     showDashboard();
     setTab('overview');
     toast('Authenticated with Supabase Live ✦');
@@ -1021,12 +1031,11 @@ $('#loginForm')?.addEventListener('submit', async (event) => {
   }
 });
 
-// Quick Sign-in Preset Chips
-$$('.quick-fill-btn').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    $('#emailInput').value = btn.dataset.email || '';
-    $('#passwordInput').value = btn.dataset.pass || '';
-  });
+$('#resetPasswordBtn')?.addEventListener('click', async () => {
+  const email = $('#emailInput')?.value.trim();
+  if (!email) return showLogin('Enter your admin email first.');
+  const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+  showLogin(error ? error.message : 'Password reset email sent.');
 });
 
 // Sign out

@@ -98,6 +98,8 @@ button {
   gap: 8px;
   transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
+
+.text-link { background: transparent; color: var(--violet); padding: 8px 0; font-size: 12px; font-weight: 800; }
 button:hover {
   transform: translateY(-1px);
 }

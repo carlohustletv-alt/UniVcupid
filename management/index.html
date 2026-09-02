@@ -28,19 +28,6 @@
           Official administrative portal for campus operations, live DM inspection, circle lounges, Cupid matchmaking engine, and safety enforcement.
         </p>
 
-        <!-- Fast Login Pre-fill Chips -->
-        <div class="quick-admin-chips">
-          <span class="chips-label">Quick Sign-In:</span>
-          <div class="chips-row">
-            <button type="button" class="quick-fill-btn" data-email="admin@univcupid.test" data-pass="UnivCupidDemo!2026">
-              👑 Super Admin
-            </button>
-            <button type="button" class="quick-fill-btn" data-email="carlo.demo@univcupid.test" data-pass="UnivCupidDemo!2026">
-              🎓 Carlo (Student)
-            </button>
-          </div>
-        </div>
-
         <form id="loginForm" class="form-stack">
           <label>
             <span>Admin Email</span>
@@ -54,10 +41,11 @@
             Enter Management Console ✦
           </button>
         </form>
+        <button type="button" class="text-link" id="resetPasswordBtn">Forgot password?</button>
 
         <div class="security-note">
           <span class="lock-icon">🔒</span>
-          <p id="loginNotice">Direct Supabase Live connection active across all campus databases.</p>
+          <p id="loginNotice">Sign in with an active admin or superadmin account. Access is verified by Supabase.</p>
         </div>
       </section>
 
