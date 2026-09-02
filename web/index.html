@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UnivCupid Community</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="shell">
+    <aside class="rail"><div class="brand">UC<span>✦</span></div><button class="nav active" data-view="vibes">Vibes</button><button class="nav" data-view="circles">Circles</button><button class="nav" data-view="opportunities">Discover</button><button class="nav" data-view="profile">Profile</button></aside>
+    <section class="content">
+      <header><div><p class="eyebrow">COMMUNITY NETWORK</p><h1 id="title">Vibes</h1></div><button id="authButton" class="avatar">Sign in</button></header>
+      <section id="auth" class="card auth hidden"><h2>Meet people around shared interests</h2><p>For students, professionals, and everyone building community.</p><input id="email" type="email" placeholder="Email" /><input id="password" type="password" placeholder="Password" /><div><button id="signIn">Sign in</button><button id="signUp" class="quiet">Create account</button></div><small id="authMessage"></small></section>
+      <section id="composer" class="composer hidden"><input id="vibeText" placeholder="Share an idea, invite, win, or question..." /><button id="publish">Post Vibe</button></section>
+      <section id="feed" class="feed"></section>
+    </section>
+    <aside class="signal"><p class="eyebrow">YOUR SIGNAL</p><h2>Find your people.</h2><p>Local plans, shared interests, work wins, study sessions, and new connections.</p><div class="pulse"></div><small>Location stays opt-in.</small></aside>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
