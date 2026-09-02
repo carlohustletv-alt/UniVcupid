@@ -153,7 +153,8 @@ async function loadOverview() {
       reportsRes,
       vibeReqRes,
       convRes,
-      matchesRes
+      matchesRes,
+      communityRes
     ] = await Promise.all([
       client.from('profiles').select('*', { count: 'exact' }),
       client.from('vibes').select('*', { count: 'exact' }),
@@ -162,7 +163,8 @@ async function loadOverview() {
       client.from('reports').select('*', { count: 'exact' }),
       client.from('vibe_requests').select('*', { count: 'exact' }),
       client.from('conversations').select('*', { count: 'exact' }),
-      client.from('matches').select('*', { count: 'exact' })
+      client.from('matches').select('*', { count: 'exact' }),
+      client.rpc('admin_community_data_summary')
     ]);
 
     const totalProfiles = profilesRes.count ?? (profilesRes.data?.length || 0);
@@ -175,6 +177,7 @@ async function loadOverview() {
     const pendingVibeReq = vibeReqRes.count ?? (vibeReqRes.data?.length || 0);
     const totalConvs = convRes.count ?? (convRes.data?.length || 0);
     const totalMatches = matchesRes.count ?? (matchesRes.data?.length || 0);
+    const community = communityRes.data?.[0] || {};
 
     const overview = {
       profiles: totalProfiles,
@@ -185,7 +188,8 @@ async function loadOverview() {
       reports_resolved: resolvedReports,
       vibe_requests_pending: pendingVibeReq,
       conversations: totalConvs,
-      matches: totalMatches
+      matches: totalMatches,
+      ...community
     };
     state.cachedData.overview = overview;
 
@@ -198,14 +202,17 @@ async function loadOverview() {
     }
 
     const metricCards = [
-      { label: 'Total Students', value: totalProfiles, icon: '👥', color: 'var(--violet)' },
+      { label: 'Community Members', value: totalProfiles, icon: '👥', color: 'var(--violet)' },
       { label: 'Live Conversations', value: totalConvs, icon: '💬', color: '#ec4899' },
       { label: 'Mutual Matches', value: totalMatches, icon: '💘', color: 'var(--coral)' },
-      { label: 'Campus Circles', value: totalCircles, icon: '◌', color: 'var(--mint)' },
+      { label: 'Community Circles', value: totalCircles, icon: '◌', color: 'var(--mint)' },
       { label: 'Lounge Posts', value: totalCirclePosts, icon: '📝', color: 'var(--blue)' },
       { label: 'Active Vibes', value: totalVibes, icon: '✨', color: '#8b5cf6' },
       { label: 'Open Reports', value: openReports, icon: '⚠️', color: 'var(--coral)' },
-      { label: 'Pending Requests', value: pendingVibeReq, icon: '🤝', color: 'var(--amber)' },
+      { label: 'Saved Vibes', value: community.saved_vibes || 0, icon: '🔖', color: 'var(--amber)' },
+      { label: 'Opportunities', value: community.opportunities || 0, icon: '💼', color: 'var(--blue)' },
+      { label: 'Circle Comments', value: community.circle_comments || 0, icon: '💭', color: 'var(--violet)' },
+      { label: 'Pending Verification', value: community.pending_verifications || 0, icon: '🛡️', color: 'var(--coral)' },
     ];
 
     $('#metricsGrid').innerHTML = metricCards.map((card) => `
