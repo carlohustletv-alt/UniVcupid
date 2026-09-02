@@ -28,6 +28,7 @@ interface UnivCupidRepository {
     suspend fun loadSafetyStatus(): SafetyStatus
     suspend fun loadMyReportStatuses(): List<ReportStatus>
     suspend fun disableMyLocation()
+    suspend fun updateMyProfileDetails(displayName: String, affiliation: String, role: String, bio: String)
     suspend fun createVibeTap(): String
     suspend fun claimVibeTap(code: String)
     suspend fun loadIncomingVibeRequests(): List<VibeRequest>
@@ -208,6 +209,9 @@ class SupabaseUnivCupidRepository(
     override suspend fun loadSafetyStatus(): SafetyStatus { val row = rest.post("rpc/get_my_safety_status", JSONObject()).getJSONObject(0); return SafetyStatus(row.optString("verification_status"), row.optBoolean("location_enabled")) }
     override suspend fun loadMyReportStatuses(): List<ReportStatus> { val rows = rest.post("rpc/get_my_report_statuses", JSONObject()); return List(rows.length()) { i -> rows.getJSONObject(i).let { ReportStatus(it.optString("reason"), it.optString("status")) } } }
     override suspend fun disableMyLocation() { rest.post("rpc/disable_my_location", JSONObject()) }
+    override suspend fun updateMyProfileDetails(displayName: String, affiliation: String, role: String, bio: String) {
+        rest.post("rpc/update_my_profile_details", JSONObject().put("p_display_name", displayName.trim()).put("p_affiliation", affiliation.trim()).put("p_role", role.trim()).put("p_bio", bio.trim()))
+    }
 
     override suspend fun createVibeTap(): String = rest.post("rpc/create_vibe_tap", JSONObject()).getJSONObject(0).getString("code")
 

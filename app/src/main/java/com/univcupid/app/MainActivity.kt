@@ -793,6 +793,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     val context = LocalContext.current
     var privacy by remember { mutableStateOf(PrivacySettings()) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showEditor by rememberSaveable { mutableStateOf(false) }
     var profile by remember { mutableStateOf<PublicProfile?>(null) }
     var uploadingAvatar by remember { mutableStateOf(false) }
     var myPosts by remember { mutableStateOf<List<VibePost>>(emptyList()) }
@@ -846,6 +847,21 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     }
     LaunchedEffect(Unit) { loadProfile(); loadMyPosts(); loadPlanRequests() }
 
+    if (showEditor) {
+        ProfileEditor(
+            profile = profile ?: PublicProfile(session.userId, session.email.substringBefore("@"), 0, "", "", emptyList(), 100),
+            onBack = { showEditor = false },
+            onSave = { name, affiliation, role, bio ->
+                scope.launch {
+                    runCatching { repository.updateMyProfileDetails(name, affiliation, role, bio) }
+                        .onSuccess { profile = (profile ?: PublicProfile(session.userId, name, 0, affiliation, role, emptyList(), 100)).copy(displayName = name, university = affiliation, course = role); showEditor = false; notify("Profile updated. Details are locked for 15 days.") }
+                        .onFailure { notify(it.message ?: "Could not update profile") }
+                }
+            },
+        )
+        return
+    }
+
     if (showSettings) {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
@@ -876,6 +892,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
                 uploadingAvatar = uploadingAvatar,
                 pickAvatar = { avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
                 openSettings = { showSettings = true },
+                openEditor = { showEditor = true },
             )
         }
         item { OutlinedButton(onClick = { if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) { val manager = context.getSystemService(LocationManager::class.java); val location = manager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); if (location == null) notify("Turn on Location and try again.") else scope.launch { repository.updateMyLocation(location.latitude, location.longitude); notify("Nearby Cupid alerts are on") } } else locationPermission.launch(Manifest.permission.ACCESS_COARSE_LOCATION) }, modifier = Modifier.fillMaxWidth()) { Text("📍 Nearby Cupid") } }
@@ -956,9 +973,11 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
     }
 }
 
-@Composable private fun OwnProfileHeader(profile: PublicProfile, postCount: Int, openPlanCount: Int, uploadingAvatar: Boolean, pickAvatar: () -> Unit, openSettings: () -> Unit) { Surface(shape = RoundedCornerShape(24.dp), color = Color.White, shadowElevation = 3.dp, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { ProfileAvatar(profile, 88); Column(Modifier.weight(1f).padding(start = 14.dp)) { Text(profile.displayName.ifBlank { "Your profile" }, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink); Text(listOf(profile.university, profile.course).filter { it.isNotBlank() }.joinToString(" · ").ifBlank { "Add your campus details" }, color = Muted, fontSize = 12.sp); TextButton(onClick = pickAvatar, enabled = !uploadingAvatar, contentPadding = PaddingValues(0.dp)) { Text(if (uploadingAvatar) "Uploading photo..." else "Change profile photo", color = Violet, fontWeight = FontWeight.Bold) } } }; Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) { ProfileStat(postCount.toString(), "Vibes"); ProfileStat(openPlanCount.toString(), "Open plans"); ProfileStat("♡", "Connections") }; OutlinedButton(onClick = openSettings, modifier = Modifier.fillMaxWidth()) { Text("Edit profile & privacy") } } } }
+@Composable private fun OwnProfileHeader(profile: PublicProfile, postCount: Int, openPlanCount: Int, uploadingAvatar: Boolean, pickAvatar: () -> Unit, openSettings: () -> Unit, openEditor: () -> Unit) { Surface(shape = RoundedCornerShape(24.dp), color = Color.White, shadowElevation = 3.dp, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { ProfileAvatar(profile, 88); Column(Modifier.weight(1f).padding(start = 14.dp)) { Text(profile.displayName.ifBlank { "Your profile" }, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Ink); Text(listOf(profile.university, profile.course).filter { it.isNotBlank() }.joinToString(" · ").ifBlank { "Add your community details" }, color = Muted, fontSize = 12.sp); TextButton(onClick = pickAvatar, enabled = !uploadingAvatar, contentPadding = PaddingValues(0.dp)) { Text(if (uploadingAvatar) "Uploading photo..." else "Change profile photo", color = Violet, fontWeight = FontWeight.Bold) } } }; Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) { ProfileStat(postCount.toString(), "Vibes"); ProfileStat(openPlanCount.toString(), "Open plans"); ProfileStat("♡", "Connections") }; Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) { OutlinedButton(onClick = openEditor, modifier = Modifier.weight(1f)) { Text("Edit profile") }; OutlinedButton(onClick = openSettings, modifier = Modifier.weight(1f)) { Text("Privacy") } } } } }
 
 @Composable private fun ProfileStat(value: String, label: String) { Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(value, fontWeight = FontWeight.ExtraBold, color = Ink); Text(label, color = Muted, fontSize = 11.sp) } }
+
+@Composable private fun ProfileEditor(profile: PublicProfile, onBack: () -> Unit, onSave: (String, String, String, String) -> Unit) { var name by rememberSaveable { mutableStateOf(profile.displayName) }; var affiliation by rememberSaveable { mutableStateOf(profile.university) }; var role by rememberSaveable { mutableStateOf(profile.course) }; LazyColumn(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { item { TextButton(onBack) { Text("‹ Back to profile") }; Header("Edit profile", "Your details can be changed once every 15 days") }; item { OutlinedTextField(name, { name = it.take(60) }, label = { Text("Display name") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }; item { OutlinedTextField(affiliation, { affiliation = it.take(100) }, label = { Text("School, workplace, or community") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }; item { OutlinedTextField(role, { role = it.take(100) }, label = { Text("Course, role, or interest") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }; item { Button(onClick = { onSave(name, affiliation, role, "") }, enabled = name.isNotBlank(), modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = Violet)) { Text("Save profile") } } } }
 
 @Composable private fun ProfileHeaderCard(profile: PublicProfile, status: String, sendVibe: () -> Unit) { Surface(shape = RoundedCornerShape(24.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { Row(verticalAlignment = Alignment.CenterVertically) { ProfileAvatar(profile, 42); Column(Modifier.padding(start = 12.dp)) { Text(profile.displayName, fontSize = 24.sp, fontWeight = FontWeight.Bold); Text("${profile.university} · ${profile.course}", color = Muted, fontSize = 12.sp) } }; Surface(color = VioletLight, shape = RoundedCornerShape(12.dp)) { Text("$status · ${profile.commonVibePercent}% spark", Modifier.padding(horizontal = 10.dp, vertical = 6.dp), color = Violet, fontWeight = FontWeight.Bold, fontSize = 12.sp) }; if (status == "none" || status == "incoming") Button(sendVibe, colors = ButtonDefaults.buttonColors(containerColor = Coral), modifier = Modifier.fillMaxWidth()) { Text(if (status == "incoming") "Accept vibe" else "Send vibe") } else Text(if (status == "vibesmate") "You are VibesMates. Private posts are visible." else "Vibe request sent.", color = Muted, fontSize = 12.sp) } } }
 
