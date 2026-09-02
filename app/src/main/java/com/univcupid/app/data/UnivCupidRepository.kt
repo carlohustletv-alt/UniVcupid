@@ -144,7 +144,7 @@ class SupabaseUnivCupidRepository(
         val rows = rest.post("rpc/get_cupid_candidates", JSONObject().put("viewer_id", userId).put("result_limit", 12))
         return List(rows.length()) { index ->
             val item = rows.getJSONObject(index)
-            PublicProfile(item.getString("id"), item.optString("display_name"), item.optInt("age"), item.optString("university"), item.optString("course"), emptyList(), item.optInt("common_vibe_percent"))
+            PublicProfile(item.getString("id"), item.optString("display_name"), item.optInt("age"), item.optString("university"), item.optString("course"), emptyList(), item.optInt("common_vibe_percent"), item.optString("avatar_url"))
         }
     }
 

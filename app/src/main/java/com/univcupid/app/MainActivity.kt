@@ -1032,11 +1032,12 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
         color = Color.White,
         shadowElevation = 8.dp,
         border = androidx.compose.foundation.BorderStroke(1.5.dp, Brush.linearGradient(listOf(Color(0xFFFFD0D9), Color(0xFFF0ECFF)))),
-        modifier = Modifier.fillMaxWidth().height(420.dp)
+        modifier = Modifier.fillMaxWidth().height(450.dp)
     ) {
         Column {
-            Box(Modifier.fillMaxWidth().height(245.dp).background(Brush.verticalGradient(listOf(Color(0xFF8672B8), Ink))), contentAlignment = Alignment.Center) {
-                Text(person.displayName.firstOrNull()?.toString() ?: "?", color = Color.White, fontSize = 84.sp, fontWeight = FontWeight.Bold)
+            Box(Modifier.fillMaxWidth().height(265.dp).background(Brush.verticalGradient(listOf(Color(0xFF8672B8), Ink))), contentAlignment = Alignment.Center) {
+                if (person.avatarUrl.isBlank()) Text(person.displayName.firstOrNull()?.toString() ?: "?", color = Color.White, fontSize = 84.sp, fontWeight = FontWeight.Bold)
+                else AsyncImage(model = person.avatarUrl, contentDescription = "${person.displayName} Cupid profile", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
                 if (onReport != null) {
                     IconButton(onClick = onReport, modifier = Modifier.align(Alignment.TopEnd).padding(10.dp)) {
                         Text("🚩", fontSize = 16.sp)
@@ -1050,7 +1051,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
                     Text("📍 ${person.university}", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                 }
             }
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(Modifier.padding(horizontal = 18.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("${person.displayName}, ${person.age}", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Ink)
                     Surface(
