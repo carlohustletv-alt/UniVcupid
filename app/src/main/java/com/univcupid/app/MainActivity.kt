@@ -439,6 +439,7 @@ private fun VibeScreen(repository: UnivCupidRepository, openPhoto: (VibePost) ->
                             .onFailure { notify(it.message ?: "Could not request to join") }
                     }
                 },
+                onSave = { scope.launch { runCatching { repository.saveVibe(post.id) }.onSuccess { notify("Vibe saved") }.onFailure { notify(it.message ?: "Could not save Vibe") } } },
                 react = { reaction ->
                     scope.launch {
                         runCatching { repository.reactToVibe(post.id, reaction) }
@@ -983,7 +984,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
 
 @Composable private fun Header(title: String, subtitle: String) { Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { LogoMark(); Column(Modifier.padding(start = 10.dp)) { Text(title, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Ink); Text(subtitle, color = Muted, fontSize = 12.sp) } } }
 
-@Composable private fun VibePostCard(post: VibePost, openPhoto: (VibePost) -> Unit, openProfile: (String) -> Unit, onReport: () -> Unit, onJoinPlan: () -> Unit, react: (String) -> Unit) {
+@Composable private fun VibePostCard(post: VibePost, openPhoto: (VibePost) -> Unit, openProfile: (String) -> Unit, onReport: () -> Unit, onJoinPlan: () -> Unit, onSave: () -> Unit, react: (String) -> Unit) {
     Surface(shape = RoundedCornerShape(24.dp), color = Ink, shadowElevation = 6.dp, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.background(Brush.linearGradient(listOf(Color(0xFF8667B8), Ink))).padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -1006,6 +1007,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
             }
             Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 listOf("❤️", "🔥", "🙌").forEach { Button({ react(it) }, colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = .22f)), shape = RoundedCornerShape(14.dp)) { Text(it, fontSize = 14.sp) } }
+                TextButton(onClick = onSave, colors = ButtonDefaults.textButtonColors(contentColor = Color.White)) { Text("Save", fontSize = 11.sp) }
                 Spacer(Modifier.weight(1f))
                 Surface(color = Color.White.copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp)) { Text("❤️ ${post.reactionCount}", Modifier.padding(horizontal = 10.dp, vertical = 6.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
             }
