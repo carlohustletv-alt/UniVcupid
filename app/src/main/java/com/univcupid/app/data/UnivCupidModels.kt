@@ -57,6 +57,8 @@ data class AppNotification(
     val body: String,
     val count: Int = 1,
 )
+data class SafetyStatus(val verification: String, val locationEnabled: Boolean)
+data class ReportStatus(val reason: String, val status: String)
 
 data class CircleSummary(
     val id: String,

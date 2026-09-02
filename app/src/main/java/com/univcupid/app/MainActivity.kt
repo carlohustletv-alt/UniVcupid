@@ -925,6 +925,7 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
 private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: String, onBack: () -> Unit, openPhoto: (VibePost) -> Unit, notify: (String) -> Unit) {
     val scope = rememberCoroutineScope()
     var detail by remember { mutableStateOf<ProfileDetail?>(null) }
+    var blocked by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     fun load() {
@@ -934,6 +935,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
                 .onSuccess { detail = it; error = null }
                 .onFailure { error = it.message }
             loading = false
+            runCatching { repository.getBlockState(profileUserId) }.onSuccess { blocked = it }
         }
     }
     LaunchedEffect(profileUserId) { load() }
@@ -945,6 +947,7 @@ private fun ProfileDetailScreen(repository: UnivCupidRepository, profileUserId: 
             detail != null -> {
                 val profileDetail = detail ?: return@LazyColumn
                 item { ProfileHeaderCard(profileDetail.profile, profileDetail.vibesmateStatus) { scope.launch { runCatching { repository.sendVibeRequest(profileUserId) }.onSuccess { notify("Vibe sent"); load() }.onFailure { notify(it.message ?: "Could not send vibe") } } } }
+                item { OutlinedButton(onClick = { scope.launch { runCatching { repository.setBlock(profileUserId, !blocked) }.onSuccess { blocked = !blocked; notify(if (blocked) "Member blocked" else "Member unblocked") }.onFailure { notify(it.message ?: "Could not update block") } } }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.outlinedButtonColors(contentColor = Coral)) { Text(if (blocked) "Unblock member" else "Block member") } }
                 item { Text("Vibes", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
                 if (profileDetail.posts.isEmpty()) item { EmptyCard("No visible Vibes", "VibesMate-only posts unlock after both students accept the vibe.") }
                 else items(profileDetail.posts, key = { it.id }) { post -> MyPostCard(post, openPhoto, onDelete = {}) }
