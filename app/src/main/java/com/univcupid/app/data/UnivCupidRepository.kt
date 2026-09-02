@@ -37,6 +37,7 @@ interface UnivCupidRepository {
     suspend fun publishQuickShare(draft: QuickShareDraft): VibePost
     suspend fun reactToVibe(vibeId: String, reaction: String)
     suspend fun saveVibe(vibeId: String)
+    suspend fun updateDiscoverySettings(availability: String, networkingMode: Boolean)
     suspend fun sendVibeRequest(targetUserId: String)
     suspend fun requestToJoinVibe(vibeId: String)
     suspend fun acceptVibeRequest(requestId: String)
@@ -270,6 +271,7 @@ class SupabaseUnivCupidRepository(
         rest.post("vibe_reactions", JSONArray().put(JSONObject().put("vibe_id", vibeId).put("user_id", userId).put("reaction", reaction)), "resolution=merge-duplicates,return=representation")
     }
     override suspend fun saveVibe(vibeId: String) { rest.post("saved_vibes", JSONArray().put(JSONObject().put("user_id", userId).put("vibe_id", vibeId)), "resolution=merge-duplicates,return=representation") }
+    override suspend fun updateDiscoverySettings(availability: String, networkingMode: Boolean) { rest.post("profiles", JSONArray().put(JSONObject().put("id", userId).put("availability", availability.trim()).put("networking_mode", networkingMode)), "resolution=merge-duplicates,return=representation") }
 
     override suspend fun sendVibeRequest(targetUserId: String) {
         rest.post("rpc/send_vibe_request", JSONObject().put("target_user", targetUserId))

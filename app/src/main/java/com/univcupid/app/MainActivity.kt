@@ -794,6 +794,8 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
     val context = LocalContext.current
     var privacy by remember { mutableStateOf(PrivacySettings()) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var availability by rememberSaveable { mutableStateOf("") }
+    var networkingMode by rememberSaveable { mutableStateOf(false) }
     var showEditor by rememberSaveable { mutableStateOf(false) }
     var profile by remember { mutableStateOf<PublicProfile?>(null) }
     var uploadingAvatar by remember { mutableStateOf(false) }
@@ -878,6 +880,10 @@ private fun ProfileScreen(session: SupabaseSession, repository: UnivCupidReposit
                 SettingRow("Appear in Cupid", privacy.appearInCupid) { privacy = privacy.copy(appearInCupid = it); scope.launch { repository.updatePrivacy(privacy) }; notify("Privacy updated") }
                 SettingRow("Appear in Vibe", privacy.appearInVibe) { privacy = privacy.copy(appearInVibe = it); scope.launch { repository.updatePrivacy(privacy) }; notify("Privacy updated") }
             }
+            item { Text("Discovery", fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+            item { OutlinedTextField(availability, { availability = it.take(100) }, label = { Text("Availability") }, placeholder = { Text("Open to networking, study, projects...") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
+            item { OutlinedButton(onClick = { scope.launch { runCatching { repository.updateDiscoverySettings(availability, networkingMode) }.onSuccess { notify("Availability saved") }.onFailure { notify(it.message ?: "Could not save availability") } } }, modifier = Modifier.fillMaxWidth()) { Text("Save discovery preferences") } }
+            item { SettingRow("Networking mode", networkingMode) { networkingMode = it; scope.launch { runCatching { repository.updateDiscoverySettings(availability, it) }.onSuccess { notify("Discovery preferences updated") }.onFailure { notify(it.message ?: "Could not update discovery") } } } }
             item { Button(onSignOut, colors = ButtonDefaults.buttonColors(containerColor = Ink), modifier = Modifier.fillMaxWidth()) { Text("Sign out") } }
         }
         return
